@@ -1,0 +1,14 @@
+*.env
+logs/*
+.idea
+.vscode
+config.yml
+.DS_Store
+skills-lock.json
+settings.local.json
+.agent/
+.agents/
+.trae/
+.venv/
+__pycache__/
+.gcp/
