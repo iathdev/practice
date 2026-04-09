@@ -1,40 +1,40 @@
 # Q30: What are the differences between @RequestParam and @PathVariable?
 > **Dịch:** Sự khác nhau giữa @RequestParam và @PathVariable là gì?
 
-## Tra loi ngan gon
-> `@PathVariable` lay gia tri tu **URL path** (`/users/1`). `@RequestParam` lay gia tri tu **query string** (`/users?name=Thai`).
+## Trả lời ngắn gọn
+> `@PathVariable` lấy giá trị từ **URL path** (`/users/1`). `@RequestParam` lấy giá trị từ **query string** (`/users?name=Thai`).
 
-## Cach nho
+## Cách nhớ
 ```
 URL: /users/1?name=Thai&age=25
           |         |       |
      @PathVariable  @RequestParam  @RequestParam
 ```
 
-## So sanh
+## So sánh
 
 | | @PathVariable | @RequestParam |
 |--|:---:|:---:|
-| Lay tu | URL path | Query string |
-| Vi du URL | `/users/1` | `/users?name=Thai` |
-| Bat buoc | Co (mac dinh) | Co the optional |
-| Dung cho | Resource ID | Filter, search, pagination |
+| Lấy từ | URL path | Query string |
+| Ví dụ URL | `/users/1` | `/users?name=Thai` |
+| Bắt buộc | Có (mặc định) | Có thể optional |
+| Dùng cho | Resource ID | Filter, search, pagination |
 
-## Vi du chi tiet
+## Ví dụ chi tiết
 
 ```java
 @RestController
 @RequestMapping("/api")
 public class UserController {
 
-    // @PathVariable - lay tu URL path
+    // @PathVariable - lấy từ URL path
     // GET /api/users/1
     @GetMapping("/users/{id}")
     public User getUser(@PathVariable Long id) {
         return userService.findById(id);
     }
 
-    // Nhieu PathVariable
+    // Nhiều PathVariable
     // GET /api/users/1/orders/5
     @GetMapping("/users/{userId}/orders/{orderId}")
     public Order getOrder(@PathVariable Long userId,
@@ -42,29 +42,29 @@ public class UserController {
         return orderService.findByUserAndId(userId, orderId);
     }
 
-    // @RequestParam - lay tu query string
+    // @RequestParam - lấy từ query string
     // GET /api/users?name=Thai&page=0&size=10
     @GetMapping("/users")
     public Page<User> searchUsers(
-            @RequestParam String name,                           // bat buoc
-            @RequestParam(defaultValue = "0") int page,          // co default
-            @RequestParam(defaultValue = "10") int size,         // co default
+            @RequestParam String name,                           // bắt buộc
+            @RequestParam(defaultValue = "0") int page,          // có default
+            @RequestParam(defaultValue = "10") int size,         // có default
             @RequestParam(required = false) String email) {      // optional
         return userService.search(name, email, page, size);
     }
 
-    // Ket hop ca 2
+    // Kết hợp cả 2
     // GET /api/users/1/orders?status=PAID&sort=date
     @GetMapping("/users/{userId}/orders")
     public List<Order> getUserOrders(
-            @PathVariable Long userId,                  // Tu path
-            @RequestParam(defaultValue = "ALL") String status,  // Tu query
-            @RequestParam(defaultValue = "date") String sort) { // Tu query
+            @PathVariable Long userId,                  // Từ path
+            @RequestParam(defaultValue = "ALL") String status,  // Từ query
+            @RequestParam(defaultValue = "date") String sort) { // Từ query
         return orderService.findByUser(userId, status, sort);
     }
 
-    // @RequestParam voi List
-    // GET /api/users?ids=1,2,3  hoac  /api/users?ids=1&ids=2&ids=3
+    // @RequestParam với List
+    // GET /api/users?ids=1,2,3  hoặc  /api/users?ids=1&ids=2&ids=3
     @GetMapping("/users/batch")
     public List<User> getUsersByIds(@RequestParam List<Long> ids) {
         return userService.findByIds(ids);
@@ -72,23 +72,23 @@ public class UserController {
 }
 ```
 
-## Khi nao dung cai nao?
+## Khi nào dùng cái nào?
 
 ```
 @PathVariable:
-  - Xac dinh 1 RESOURCE cu the: /users/{id}, /products/{slug}
+  - Xác định 1 RESOURCE cụ thể: /users/{id}, /products/{slug}
   - RESTful URL design
-  - Luon BAT BUOC
+  - Luôn BẮT BUỘC
 
 @RequestParam:
   - FILTER / SEARCH: /users?name=Thai&role=ADMIN
   - PAGINATION: /users?page=0&size=10
   - SORT: /users?sort=name,asc
-  - Co the OPTIONAL (required=false, defaultValue)
+  - Có thể OPTIONAL (required=false, defaultValue)
 ```
 
-## Diem quan trong nho phong van
-1. `@PathVariable` = tu **URL path**, `@RequestParam` = tu **query string**
-2. `@RequestParam(required = false)` hoac `defaultValue` cho optional
-3. Ket hop duoc ca 2 trong 1 method
-4. RESTful: dung `@PathVariable` cho ID, `@RequestParam` cho filter/sort/page
+## Điểm quan trọng nhớ phỏng vấn
+1. `@PathVariable` = từ **URL path**, `@RequestParam` = từ **query string**
+2. `@RequestParam(required = false)` hoặc `defaultValue` cho optional
+3. Kết hợp được cả 2 trong 1 method
+4. RESTful: dùng `@PathVariable` cho ID, `@RequestParam` cho filter/sort/page

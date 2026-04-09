@@ -11,8 +11,8 @@
 
 ## Q45: Request Mapping Flow
 
-### Tra loi ngan gon
-> DispatcherServlet nhan request -> **HandlerMapping** tim controller dua tren `@RequestMapping` -> **HandlerAdapter** goi method phu hop -> Controller xu ly va tra ve response.
+### Trả lời ngắn gọn
+> DispatcherServlet nhận request -> **HandlerMapping** tìm controller dựa trên `@RequestMapping` -> **HandlerAdapter** gọi method phù hợp -> Controller xử lý và trả về response.
 
 ```
 GET /api/users/1
@@ -21,18 +21,18 @@ GET /api/users/1
 DispatcherServlet
      |
      v
-HandlerMapping kiem tra:
+HandlerMapping kiểm tra:
   @RequestMapping("/api/users") -> UserController
   @GetMapping("/{id}")          -> getUser(Long id)
      |
      v
-HandlerAdapter goi: UserController.getUser(1)
+HandlerAdapter gọi: UserController.getUser(1)
      |
      v
 Response: {"id": 1, "name": "Thai"}
 ```
 
-### Cac annotation mapping
+### Các annotation mapping
 
 ```java
 @RestController
@@ -45,11 +45,11 @@ public class UserController {
     @DeleteMapping("/{id}")      // DELETE /api/users/{id}
     @PatchMapping("/{id}")       // PATCH /api/users/{id}
 
-    // Mapping theo nhieu tieu chi
+    // Mapping theo nhiều tiêu chí
     @GetMapping(
         value = "/search",
-        params = "name",                                 // Phai co param name
-        headers = "X-API-KEY",                           // Phai co header
+        params = "name",                                 // Phải có param name
+        headers = "X-API-KEY",                           // Phải có header
         produces = MediaType.APPLICATION_JSON_VALUE       // Response JSON
     )
     public List<User> search(@RequestParam String name) { }
@@ -60,8 +60,8 @@ public class UserController {
 
 ## Q46: Spring MVC Interceptor
 
-### Tra loi ngan gon
-> **Interceptor** la component chen vao luong xu ly request **truoc/sau** controller. Giong Filter nhung hoat dong o **Spring MVC level** (co truy cap Spring context).
+### Trả lời ngắn gọn
+> **Interceptor** là component chèn vào luồng xử lý request **trước/sau** controller. Giống Filter nhưng hoạt động ở **Spring MVC level** (có truy cập Spring context).
 
 ```
 Client -> Filter -> DispatcherServlet -> Interceptor -> Controller
@@ -69,7 +69,7 @@ Client -> Filter -> DispatcherServlet -> Interceptor -> Controller
                                     preHandle() -> Controller -> postHandle() -> afterCompletion()
 ```
 
-### Vi du: Logging Interceptor
+### Ví dụ: Logging Interceptor
 
 ```java
 @Component
@@ -81,7 +81,7 @@ public class LoggingInterceptor implements HandlerInterceptor {
                              Object handler) {
         System.out.println("BEFORE: " + request.getMethod() + " " + request.getRequestURI());
         request.setAttribute("startTime", System.currentTimeMillis());
-        return true; // true = tiep tuc, false = dung lai
+        return true; // true = tiếp tục, false = dừng lại
     }
 
     @Override
@@ -100,7 +100,7 @@ public class LoggingInterceptor implements HandlerInterceptor {
     }
 }
 
-// Dang ky interceptor
+// Đăng ký interceptor
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
     @Autowired
@@ -109,8 +109,8 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(loggingInterceptor)
-            .addPathPatterns("/api/**")        // Ap dung cho /api/**
-            .excludePathPatterns("/api/health"); // Bo qua health check
+            .addPathPatterns("/api/**")        // Áp dụng cho /api/**
+            .excludePathPatterns("/api/health"); // Bỏ qua health check
     }
 }
 ```
@@ -120,54 +120,54 @@ public class WebConfig implements WebMvcConfigurer {
 | | Filter | Interceptor |
 |--|:---:|:---:|
 | Level | Servlet | Spring MVC |
-| Access Spring beans | Kho | De (la Spring bean) |
-| Access handler info | Khong | Co |
-| Dung cho | CORS, encoding, auth | Logging, audit, permission |
+| Access Spring beans | Khó | Dễ (là Spring bean) |
+| Access handler info | Không | Có |
+| Dùng cho | CORS, encoding, auth | Logging, audit, permission |
 
 ---
 
 ## Q47: Important Spring Annotations
 
-### Cac annotation quan trong nhat
+### Các annotation quan trọng nhất
 
 ```java
 // === CORE ===
-@Component          // Danh dau bean chung
+@Component          // Đánh dấu bean chung
 @Service            // Business layer
 @Repository         // Data layer
 @Controller         // Web layer (View)
 @RestController     // Web layer (JSON)
 @Configuration      // Java config class
-@Bean               // Khai bao bean thu cong
+@Bean               // Khai báo bean thủ công
 
 // === DEPENDENCY INJECTION ===
-@Autowired          // Tu dong inject
-@Qualifier("name")  // Chi dinh bean cu the
-@Primary            // Bean uu tien
-@Value("${key}")    // Inject gia tri tu properties
+@Autowired          // Tự động inject
+@Qualifier("name")  // Chỉ định bean cụ thể
+@Primary            // Bean ưu tiên
+@Value("${key}")    // Inject giá trị từ properties
 
 // === WEB ===
 @RequestMapping     // Map URL
 @GetMapping         // GET request
 @PostMapping        // POST request
-@PathVariable       // Lay tu URL path
-@RequestParam       // Lay tu query string
-@RequestBody        // Lay tu request body (JSON)
-@ResponseBody       // Tra ve truc tiep (JSON)
+@PathVariable       // Lấy từ URL path
+@RequestParam       // Lấy từ query string
+@RequestBody        // Lấy từ request body (JSON)
+@ResponseBody       // Trả về trực tiếp (JSON)
 @ResponseStatus     // Set HTTP status code
 
 // === DATA ===
-@Transactional      // Quan ly transaction
+@Transactional      // Quản lý transaction
 @Entity             // JPA entity
-@Table              // Ten bang
+@Table              // Tên bảng
 @Id                 // Primary key
 
 // === CONFIG ===
 @SpringBootApplication  // Main class Spring Boot
 @EnableAutoConfiguration
 @ComponentScan
-@Profile("dev")     // Active theo moi truong
-@Conditional        // Bean co dieu kien
+@Profile("dev")     // Active theo môi trường
+@Conditional        // Bean có điều kiện
 
 // === TEST ===
 @SpringBootTest     // Integration test
@@ -176,8 +176,8 @@ public class WebConfig implements WebMvcConfigurer {
 @MockBean           // Mock bean trong test
 ```
 
-## Diem quan trong nho phong van
+## Điểm quan trọng nhớ phỏng vấn
 1. Request mapping: **DispatcherServlet -> HandlerMapping -> Controller**
-2. Interceptor hoat dong o **Spring MVC level**, Filter o **Servlet level**
-3. Interceptor co truy cap **handler info** va **Spring context**
-4. Nho cac nhom annotation: **Core, DI, Web, Data, Config, Test**
+2. Interceptor hoạt động ở **Spring MVC level**, Filter ở **Servlet level**
+3. Interceptor có truy cập **handler info** và **Spring context**
+4. Nhớ các nhóm annotation: **Core, DI, Web, Data, Config, Test**

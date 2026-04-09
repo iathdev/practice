@@ -1,19 +1,19 @@
 # Q13: How would you relate Spring MVC Framework to MVC architecture?
 > **Dịch:** Spring MVC Framework liên hệ với kiến trúc MVC như thế nào?
 
-## Tra loi ngan gon
-> Spring MVC trien khai pattern MVC voi: **Model** = data truyen qua Model/ModelAndView, **View** = template (Thymeleaf/JSP), **Controller** = class annotated voi @Controller. **DispatcherServlet** la Front Controller dieu phoi tat ca.
+## Trả lời ngắn gọn
+> Spring MVC triển khai pattern MVC với: **Model** = data truyền qua Model/ModelAndView, **View** = template (Thymeleaf/JSP), **Controller** = class annotated với @Controller. **DispatcherServlet** là Front Controller điều phối tất cả.
 
-## Cach nho
+## Cách nhớ
 ```
-MVC = Nha hang
-  Model      = Mon an (data)
-  View       = Ban an, dia, chen (cach trinh bay)
-  Controller = Boi ban (nhan order, mang mon ra)
-  DispatcherServlet = Quan ly nha hang (phan cong boi ban)
+MVC = Nhà hàng
+  Model      = Món ăn (data)
+  View       = Bàn ăn, đĩa, chén (cách trình bày)
+  Controller = Bồi bàn (nhận order, mang món ra)
+  DispatcherServlet = Quản lý nhà hàng (phân công bồi bàn)
 ```
 
-## So do luong xu ly
+## Sơ đồ luồng xử lý
 
 ```
 Client (Browser)
@@ -24,29 +24,29 @@ Client (Browser)
 | DispatcherServlet |  <-- Front Controller
 +-------------------+
     |
-    | 2. Tim Controller phu hop
+    | 2. Tìm Controller phù hợp
     v
 +-------------------+
 | HandlerMapping    |  --> UserController.listUsers()
 +-------------------+
     |
-    | 3. Goi Controller
+    | 3. Gọi Controller
     v
 +-------------------+
-| Controller        |  --> Xu ly logic, tra ve Model + View name
+| Controller        |  --> Xử lý logic, trả về Model + View name
 | (@Controller)     |
 +-------------------+
     |
-    | 4. Tra ve "userList" + data
+    | 4. Trả về "userList" + data
     v
 +-------------------+
-| ViewResolver      |  --> Tim file userList.html
+| ViewResolver      |  --> Tìm file userList.html
 +-------------------+
     |
-    | 5. Render View voi Model data
+    | 5. Render View với Model data
     v
 +-------------------+
-| View              |  --> Tao HTML
+| View              |  --> Tạo HTML
 | (Thymeleaf/JSP)   |
 +-------------------+
     |
@@ -55,10 +55,10 @@ Client (Browser)
 Client (Browser)
 ```
 
-## Vi du code tuong ung
+## Ví dụ code tương ứng
 
 ```java
-// CONTROLLER - Nhan request, xu ly, tra ve Model + View
+// CONTROLLER - Nhận request, xử lý, trả về Model + View
 @Controller
 public class UserController {
 
@@ -67,18 +67,18 @@ public class UserController {
 
     @GetMapping("/users")
     public String listUsers(Model model) {
-        // MODEL - data truyen sang View
+        // MODEL - data truyền sang View
         List<User> users = userService.findAll();
         model.addAttribute("users", users);
 
-        // Tra ve ten VIEW
-        return "userList"; // -> ViewResolver tim userList.html
+        // Trả về tên VIEW
+        return "userList"; // -> ViewResolver tìm userList.html
     }
 }
 ```
 
 ```html
-<!-- VIEW - Hien thi data tu Model (Thymeleaf) -->
+<!-- VIEW - Hiển thị data từ Model (Thymeleaf) -->
 <!-- templates/userList.html -->
 <html>
 <body>
@@ -114,8 +114,8 @@ public class User {
 | Handler Mapping | @RequestMapping, @GetMapping... |
 | View Resolver | InternalResourceViewResolver, ThymeleafViewResolver |
 
-## Diem quan trong nho phong van
-1. **DispatcherServlet** = Front Controller, dieu phoi tat ca request
-2. **HandlerMapping** -> tim Controller, **ViewResolver** -> tim View
-3. `@Controller` dung View, `@RestController` tra JSON truc tiep (khong qua ViewResolver)
-4. Spring MVC **tach biet** 3 tang ro rang: M - V - C
+## Điểm quan trọng nhớ phỏng vấn
+1. **DispatcherServlet** = Front Controller, điều phối tất cả request
+2. **HandlerMapping** -> tìm Controller, **ViewResolver** -> tìm View
+3. `@Controller` dùng View, `@RestController` trả JSON trực tiếp (không qua ViewResolver)
+4. Spring MVC **tách biệt** 3 tầng rõ ràng: M - V - C

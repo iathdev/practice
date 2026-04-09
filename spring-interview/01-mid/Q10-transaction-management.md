@@ -1,18 +1,18 @@
 # Q10: What are the types of the transaction management Spring supports?
 > **Dịch:** Spring hỗ trợ những loại quản lý transaction nào?
 
-## Tra loi ngan gon
-> Spring ho tro **2 loai** quan ly transaction:
-> 1. **Programmatic** - code thu cong trong method
-> 2. **Declarative** - dung annotation `@Transactional` (KHUYEN DUNG)
+## Trả lời ngắn gọn
+> Spring hỗ trợ **2 loại** quản lý transaction:
+> 1. **Programmatic** - code thủ công trong method
+> 2. **Declarative** - dùng annotation `@Transactional` (KHUYÊN DÙNG)
 
-## Cach nho
+## Cách nhớ
 ```
-Programmatic  = Lai xe so san (tu sang so, dap con, nha con)
-Declarative   = Lai xe so tu dong (chi can dap ga, xe tu lam)
+Programmatic  = Lái xe số sàn (tự sang số, đạp côn, nhả côn)
+Declarative   = Lái xe số tự động (chỉ cần đạp ga, xe tự làm)
 ```
 
-## Loai 1: Programmatic Transaction (thu cong)
+## Loại 1: Programmatic Transaction (thủ công)
 
 ```java
 @Service
@@ -35,97 +35,97 @@ public class OrderService {
     }
 }
 ```
-- Uu: Kiem soat chi tiet
-- Nhuoc: Code dai, kho bao tri
+- Ưu: Kiểm soát chi tiết
+- Nhược: Code dài, khó bảo trì
 
-## Loai 2: Declarative Transaction (annotation - KHUYEN DUNG)
+## Loại 2: Declarative Transaction (annotation - KHUYÊN DÙNG)
 
 ```java
 @Service
 public class OrderService {
 
-    @Transactional  // Chi can 1 annotation!
+    @Transactional  // Chỉ cần 1 annotation!
     public void createOrder(Order order) {
-        orderRepo.save(order);        // Thanh cong
-        paymentService.charge(order); // Thanh cong
-        inventoryService.reduce(order); // THAT BAI -> Rollback TAT CA!
+        orderRepo.save(order);        // Thành công
+        paymentService.charge(order); // Thành công
+        inventoryService.reduce(order); // THẤT BẠI -> Rollback TẤT CẢ!
     }
 }
 ```
-- Uu: Don gian, sach se, de bao tri
-- Nhuoc: It kiem soat chi tiet hon
+- Ưu: Đơn giản, sạch sẽ, dễ bảo trì
+- Nhược: Ít kiểm soát chi tiết hơn
 
-## Cac thuoc tinh cua @Transactional
+## Các thuộc tính của @Transactional
 
 ```java
 @Transactional(
-    propagation = Propagation.REQUIRED,      // Mac dinh
-    isolation = Isolation.READ_COMMITTED,    // Muc co lap
-    timeout = 30,                            // Timeout (giay)
-    readOnly = false,                        // Doc/ghi
-    rollbackFor = Exception.class,           // Rollback khi nao
-    noRollbackFor = MailException.class      // Khong rollback khi nao
+    propagation = Propagation.REQUIRED,      // Mặc định
+    isolation = Isolation.READ_COMMITTED,    // Mức cô lập
+    timeout = 30,                            // Timeout (giây)
+    readOnly = false,                        // Đọc/ghi
+    rollbackFor = Exception.class,           // Rollback khi nào
+    noRollbackFor = MailException.class      // Không rollback khi nào
 )
 public void myMethod() { }
 ```
 
-## Propagation (Lan truyen transaction)
+## Propagation (Lan truyền transaction)
 
 ```
-REQUIRED (mac dinh)
-  A() goi B(): B dung chung transaction voi A
+REQUIRED (mặc định)
+  A() gọi B(): B dùng chung transaction với A
   |-------- Transaction A ---------|
-       |--- B dung chung ---|
+       |--- B dùng chung ---|
 
 REQUIRES_NEW
-  A() goi B(): B tao transaction MOI, tam dung A
-  |-------- Transaction A (tam dung) ---------|
-       |--- Transaction B (moi) ---|
+  A() gọi B(): B tạo transaction MỚI, tạm dừng A
+  |-------- Transaction A (tạm dừng) ---------|
+       |--- Transaction B (mới) ---|
 
 NESTED
-  A() goi B(): B tao savepoint trong A
+  A() gọi B(): B tạo savepoint trong A
   |-------- Transaction A ---------|
        |--- Savepoint B ---|
 ```
 
-| Propagation | Mo ta |
+| Propagation | Mô tả |
 |-------------|-------|
-| REQUIRED | Dung transaction hien tai, tao moi neu chua co |
-| REQUIRES_NEW | Luon tao transaction moi |
-| SUPPORTS | Co transaction thi dung, khong co thi thoi |
-| NOT_SUPPORTED | Khong dung transaction |
-| MANDATORY | BAT BUOC phai co transaction san |
-| NEVER | BAT BUOC khong co transaction |
-| NESTED | Tao savepoint (nested) |
+| REQUIRED | Dùng transaction hiện tại, tạo mới nếu chưa có |
+| REQUIRES_NEW | Luôn tạo transaction mới |
+| SUPPORTS | Có transaction thì dùng, không có thì thôi |
+| NOT_SUPPORTED | Không dùng transaction |
+| MANDATORY | BẮT BUỘC phải có transaction sẵn |
+| NEVER | BẮT BUỘC không có transaction |
+| NESTED | Tạo savepoint (nested) |
 
-## Luu y quan trong
+## Lưu ý quan trọng
 
 ```java
-// SAI - Tu goi noi bo, @Transactional KHONG hoat dong!
+// SAI - Tự gọi nội bộ, @Transactional KHÔNG hoạt động!
 @Service
 public class UserService {
     public void methodA() {
-        this.methodB(); // Khong qua proxy -> @Transactional bi bo qua!
+        this.methodB(); // Không qua proxy -> @Transactional bị bỏ qua!
     }
 
     @Transactional
     public void methodB() { }
 }
 
-// DUNG - Goi tu bean khac
+// ĐÚNG - Gọi từ bean khác
 @Service
 public class OrderService {
     @Autowired
     private UserService userService;
 
     public void process() {
-        userService.methodB(); // Qua proxy -> @Transactional hoat dong!
+        userService.methodB(); // Qua proxy -> @Transactional hoạt động!
     }
 }
 ```
 
-## Diem quan trong nho phong van
-1. **Declarative** (@Transactional) la best practice
-2. Mac dinh chi **rollback RuntimeException** (unchecked), muon rollback tat ca: `rollbackFor = Exception.class`
-3. **Self-invocation** khong hoat dong vi bypass proxy
-4. `@Transactional(readOnly = true)` cho cac method chi doc -> **tang performance**
+## Điểm quan trọng nhớ phỏng vấn
+1. **Declarative** (@Transactional) là best practice
+2. Mặc định chỉ **rollback RuntimeException** (unchecked), muốn rollback tất cả: `rollbackFor = Exception.class`
+3. **Self-invocation** không hoạt động vì bypass proxy
+4. `@Transactional(readOnly = true)` cho các method chỉ đọc -> **tăng performance**

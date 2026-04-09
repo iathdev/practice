@@ -1,67 +1,67 @@
 # Q11: What is the difference between Bean Factory and ApplicationContext?
 > **Dịch:** Sự khác nhau giữa BeanFactory và ApplicationContext là gì?
 
-## Tra loi ngan gon
-> **BeanFactory** la container co ban (lazy loading). **ApplicationContext** la container nang cao, ke thua BeanFactory va them nhieu tinh nang (event, i18n, AOP, eager loading).
+## Trả lời ngắn gọn
+> **BeanFactory** là container cơ bản (lazy loading). **ApplicationContext** là container nâng cao, kế thừa BeanFactory và thêm nhiều tính năng (event, i18n, AOP, eager loading).
 
-## Cach nho
+## Cách nhớ
 ```
-BeanFactory        = Quan com binh dan (chi co com)
-ApplicationContext = Nha hang 5 sao (com + nuoc + trang mieng + phuc vu)
+BeanFactory        = Quán cơm bình dân (chỉ có cơm)
+ApplicationContext = Nhà hàng 5 sao (cơm + nước + tráng miệng + phục vụ)
 ```
 
-## Bang so sanh chi tiet
+## Bảng so sánh chi tiết
 
-| Tinh nang | BeanFactory | ApplicationContext |
+| Tính năng | BeanFactory | ApplicationContext |
 |-----------|:-----------:|:------------------:|
-| Tao & quan ly Bean | Co | Co |
-| Dependency Injection | Co | Co |
-| Bean loading | **Lazy** (tao khi goi) | **Eager** (tao khi khoi dong) |
-| Event publishing | Khong | Co |
-| i18n (da ngon ngu) | Khong | Co |
-| AOP auto proxy | Khong | Co |
-| BeanPostProcessor tu dong | Thu cong | Tu dong |
-| Resource loading | Khong | Co |
-| Environment abstraction | Khong | Co |
-| Annotation support | Han che | Day du |
+| Tạo & quản lý Bean | Có | Có |
+| Dependency Injection | Có | Có |
+| Bean loading | **Lazy** (tạo khi gọi) | **Eager** (tạo khi khởi động) |
+| Event publishing | Không | Có |
+| i18n (đa ngôn ngữ) | Không | Có |
+| AOP auto proxy | Không | Có |
+| BeanPostProcessor tự động | Thủ công | Tự động |
+| Resource loading | Không | Có |
+| Environment abstraction | Không | Có |
+| Annotation support | Hạn chế | Đầy đủ |
 
-## Vi du code
+## Ví dụ code
 
 ### BeanFactory
 ```java
-// Lazy loading - bean chi duoc tao khi getBean()
+// Lazy loading - bean chỉ được tạo khi getBean()
 BeanFactory factory = new XmlBeanFactory(
     new ClassPathResource("beans.xml")
 );
-// Bean chua duoc tao o day
+// Bean chưa được tạo ở đây
 
 UserService service = factory.getBean(UserService.class);
-// Bean DUOC TAO tai thoi diem nay
+// Bean ĐƯỢC TẠO tại thời điểm này
 ```
 
 ### ApplicationContext
 ```java
-// Eager loading - TAT CA singleton bean duoc tao ngay khi khoi dong
+// Eager loading - TẤT CẢ singleton bean được tạo ngay khi khởi động
 ApplicationContext ctx = new AnnotationConfigApplicationContext(AppConfig.class);
-// Tat ca bean DA DUOC TAO roi
+// Tất cả bean ĐÃ ĐƯỢC TẠO rồi
 
 UserService service = ctx.getBean(UserService.class);
-// Chi lay bean da co san
+// Chỉ lấy bean đã có sẵn
 ```
 
-## Cac implementation cua ApplicationContext
+## Các implementation của ApplicationContext
 
 ```java
-// 1. Annotation-based (thuong dung nhat)
+// 1. Annotation-based (thường dùng nhất)
 ApplicationContext ctx = new AnnotationConfigApplicationContext(AppConfig.class);
 
 // 2. XML-based
 ApplicationContext ctx = new ClassPathXmlApplicationContext("beans.xml");
 
 // 3. Web application
-// WebApplicationContext - tu dong tao boi Spring Boot
+// WebApplicationContext - tự động tạo bởi Spring Boot
 
-// 4. Spring Boot (thuong dung)
+// 4. Spring Boot (thường dùng)
 @SpringBootApplication
 public class MyApp {
     public static void main(String[] args) {
@@ -70,16 +70,16 @@ public class MyApp {
 }
 ```
 
-## Khi nao dung cai nao?
+## Khi nào dùng cái nào?
 
 ```
-99% truong hop -> ApplicationContext (khuyen dung)
-BeanFactory    -> Chi khi can tiet kiem memory (IoT, mobile)
-                  hoac can lazy loading toan bo
+99% trường hợp -> ApplicationContext (khuyên dùng)
+BeanFactory    -> Chỉ khi cần tiết kiệm memory (IoT, mobile)
+                  hoặc cần lazy loading toàn bộ
 ```
 
-## Diem quan trong nho phong van
-1. ApplicationContext **ke thua** BeanFactory + them nhieu tinh nang
-2. BeanFactory: **Lazy**, ApplicationContext: **Eager** (mac dinh)
-3. Luon dung **ApplicationContext** trong thuc te
-4. Spring Boot tu dong tao ApplicationContext qua `SpringApplication.run()`
+## Điểm quan trọng nhớ phỏng vấn
+1. ApplicationContext **kế thừa** BeanFactory + thêm nhiều tính năng
+2. BeanFactory: **Lazy**, ApplicationContext: **Eager** (mặc định)
+3. Luôn dùng **ApplicationContext** trong thực tế
+4. Spring Boot tự động tạo ApplicationContext qua `SpringApplication.run()`

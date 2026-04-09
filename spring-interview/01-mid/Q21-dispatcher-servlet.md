@@ -1,22 +1,22 @@
 # Q21: Is the DispatcherServlet instantiated via an application context?
 > **Dịch:** DispatcherServlet có được tạo bởi Application Context không?
 
-## Tra loi ngan gon
-> **Khong hoan toan.** DispatcherServlet duoc **Servlet Container** (Tomcat) tao ra, nhung no se tu tao **WebApplicationContext rieng** (child context) de quan ly cac bean lien quan den web (controllers, view resolvers). Context nay ke thua tu **Root ApplicationContext** (parent).
+## Trả lời ngắn gọn
+> **Không hoàn toàn.** DispatcherServlet được **Servlet Container** (Tomcat) tạo ra, nhưng nó sẽ tự tạo **WebApplicationContext riêng** (child context) để quản lý các bean liên quan đến web (controllers, view resolvers). Context này kế thừa từ **Root ApplicationContext** (parent).
 
-## Cach nho
+## Cách nhớ
 ```
-Root Context (cha)     = Tong giam doc (quan ly Service, Repository)
-Web Context (con)      = Truong phong kinh doanh (quan ly Controller, ViewResolver)
-DispatcherServlet      = Nhan vien le tan (do Web Context tao ra)
+Root Context (cha)     = Tổng giám đốc (quản lý Service, Repository)
+Web Context (con)      = Trưởng phòng kinh doanh (quản lý Controller, ViewResolver)
+DispatcherServlet      = Nhân viên lễ tân (do Web Context tạo ra)
 ```
 
-## Kien truc 2 tang Context
+## Kiến trúc 2 tầng Context
 
 ```
 +------------------------------------------+
 | Root ApplicationContext                   |
-| (ContextLoaderListener tao)              |
+| (ContextLoaderListener tạo)              |
 |                                          |
 | @Service, @Repository, DataSource,       |
 | Transaction Manager, Security Config     |
@@ -25,7 +25,7 @@ DispatcherServlet      = Nhan vien le tan (do Web Context tao ra)
            v
 +------------------------------------------+
 | WebApplicationContext                     |
-| (DispatcherServlet tao)                  |
+| (DispatcherServlet tạo)                  |
 |                                          |
 | @Controller, ViewResolver,              |
 | HandlerMapping, @ControllerAdvice        |
@@ -38,18 +38,18 @@ DispatcherServlet      = Nhan vien le tan (do Web Context tao ra)
 @SpringBootApplication
 public class MyApp {
     public static void main(String[] args) {
-        // SpringApplication.run() lam tat ca:
-        // 1. Tao ApplicationContext
-        // 2. Tao DispatcherServlet
-        // 3. Dang ky vao embedded Tomcat
+        // SpringApplication.run() làm tất cả:
+        // 1. Tạo ApplicationContext
+        // 2. Tạo DispatcherServlet
+        // 3. Đăng ký vào embedded Tomcat
         SpringApplication.run(MyApp.class, args);
     }
 }
-// Spring Boot don gian hoa: chi co 1 context duy nhat
+// Spring Boot đơn giản hóa: chỉ có 1 context duy nhất
 ```
 
-## Diem quan trong nho phong van
-1. DispatcherServlet duoc **Servlet Container** (Tomcat) tao
-2. No tu tao **WebApplicationContext** rieng (child context)
-3. Child context truy cap duoc bean cua Parent, **khong nguoc lai**
-4. Spring Boot don gian hoa: thuong chi co **1 context**
+## Điểm quan trọng nhớ phỏng vấn
+1. DispatcherServlet được **Servlet Container** (Tomcat) tạo
+2. Nó tự tạo **WebApplicationContext** riêng (child context)
+3. Child context truy cập được bean của Parent, **không ngược lại**
+4. Spring Boot đơn giản hóa: thường chỉ có **1 context**

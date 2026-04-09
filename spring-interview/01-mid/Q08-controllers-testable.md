@@ -1,24 +1,24 @@
 # Q8: Why are controllers testable artifacts?
 > **Dịch:** Tại sao Controller là thành phần dễ kiểm thử (testable)?
 
-## Tra loi ngan gon
-> Controller trong Spring MVC la **POJO** (Plain Old Java Object), khong ke thua tu Servlet. Nho **Dependency Injection**, cac dependency co the duoc mock, giup test de dang ma **khong can deploy** len server.
+## Trả lời ngắn gọn
+> Controller trong Spring MVC là **POJO** (Plain Old Java Object), không kế thừa từ Servlet. Nhờ **Dependency Injection**, các dependency có thể được mock, giúp test dễ dàng mà **không cần deploy** lên server.
 
-## Cach nho
+## Cách nhớ
 ```
-Struts Controller = Can ca bep (server) moi nau duoc
-Spring Controller = Noi com dien (test duoc o bat ky dau)
+Struts Controller = Cần cả bếp (server) mới nấu được
+Spring Controller = Nồi cơm điện (test được ở bất kỳ đâu)
 ```
 
-## Tai sao Spring Controller de test?
+## Tại sao Spring Controller dễ test?
 
-### 1. Controller la POJO thuong
+### 1. Controller là POJO thường
 ```java
 @RestController
 public class UserController {
     private final UserService userService;
 
-    // Dependency Injection - co the mock duoc
+    // Dependency Injection - có thể mock được
     public UserController(UserService userService) {
         this.userService = userService;
     }
@@ -30,13 +30,13 @@ public class UserController {
 }
 ```
 
-### 2. Test voi MockMvc (khong can server)
+### 2. Test với MockMvc (không cần server)
 ```java
-@WebMvcTest(UserController.class)  // Chi load MVC layer
+@WebMvcTest(UserController.class)  // Chỉ load MVC layer
 class UserControllerTest {
 
     @Autowired
-    private MockMvc mockMvc;       // Mo phong HTTP request
+    private MockMvc mockMvc;       // Mô phỏng HTTP request
 
     @MockBean
     private UserService userService; // Mock dependency
@@ -55,7 +55,7 @@ class UserControllerTest {
 }
 ```
 
-### 3. Unit test thuan tuy (khong can Spring)
+### 3. Unit test thuần túy (không cần Spring)
 ```java
 class UserControllerUnitTest {
 
@@ -76,14 +76,14 @@ class UserControllerUnitTest {
 }
 ```
 
-## So sanh voi Servlet truyen thong
+## So sánh với Servlet truyền thống
 ```
-Servlet: phai extend HttpServlet, can ServletContext, khong mock duoc
-Spring:  POJO, inject dependency, mock de dang
+Servlet: phải extend HttpServlet, cần ServletContext, không mock được
+Spring:  POJO, inject dependency, mock dễ dàng
 ```
 
-## Diem quan trong nho phong van
-1. Controller la **POJO** - khong phu thuoc vao Servlet API
-2. **DI** cho phep **mock** cac dependency khi test
-3. **MockMvc** test HTTP request ma **khong can deploy** server
-4. `@WebMvcTest` chi load MVC layer -> test **nhanh**
+## Điểm quan trọng nhớ phỏng vấn
+1. Controller là **POJO** - không phụ thuộc vào Servlet API
+2. **DI** cho phép **mock** các dependency khi test
+3. **MockMvc** test HTTP request mà **không cần deploy** server
+4. `@WebMvcTest` chỉ load MVC layer -> test **nhanh**

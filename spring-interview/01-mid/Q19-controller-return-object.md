@@ -1,31 +1,31 @@
 # Q19: Can we send an Object as the response of Controller handler method?
 > **Dịch:** Có thể trả về Object làm response từ method của Controller không?
 
-## Tra loi ngan gon
-> **Co!** Dung `@ResponseBody` hoac `@RestController`, Spring se tu dong chuyen doi (serialize) Object thanh **JSON/XML** qua **HttpMessageConverter** (mac dinh la Jackson).
+## Trả lời ngắn gọn
+> **Có!** Dùng `@ResponseBody` hoặc `@RestController`, Spring sẽ tự động chuyển đổi (serialize) Object thành **JSON/XML** qua **HttpMessageConverter** (mặc định là Jackson).
 
-## Cach nho
+## Cách nhớ
 ```
-@Controller    = Tra ve ten View (HTML)
-@RestController = Tra ve Object -> tu dong chuyen JSON
+@Controller    = Trả về tên View (HTML)
+@RestController = Trả về Object -> tự động chuyển JSON
 ```
 
-## Vi du
+## Ví dụ
 
-### Tra ve Object (JSON)
+### Trả về Object (JSON)
 ```java
 @RestController // = @Controller + @ResponseBody
 @RequestMapping("/api")
 public class UserController {
 
-    // Tra ve 1 object -> JSON
+    // Trả về 1 object -> JSON
     @GetMapping("/users/{id}")
     public User getUser(@PathVariable Long id) {
         return new User(1L, "Thai", "thai@email.com");
     }
     // Response: {"id": 1, "name": "Thai", "email": "thai@email.com"}
 
-    // Tra ve List -> JSON array
+    // Trả về List -> JSON array
     @GetMapping("/users")
     public List<User> getUsers() {
         return List.of(
@@ -35,7 +35,7 @@ public class UserController {
     }
     // Response: [{"id": 1, ...}, {"id": 2, ...}]
 
-    // Tra ve ResponseEntity (kem HTTP status, headers)
+    // Trả về ResponseEntity (kèm HTTP status, headers)
     @GetMapping("/users/{id}/detail")
     public ResponseEntity<User> getUserDetail(@PathVariable Long id) {
         User user = userService.findById(id);
@@ -47,10 +47,10 @@ public class UserController {
 }
 ```
 
-### Qua trinh chuyen doi
+### Quá trình chuyển đổi
 ```
 Object (Java) --> HttpMessageConverter --> JSON (Response)
-                  (Jackson mac dinh)
+                  (Jackson mặc định)
 
 User{id=1, name="Thai"} --> {"id": 1, "name": "Thai"}
 ```
@@ -60,20 +60,20 @@ User{id=1, name="Thai"} --> {"id": 1, "name": "Thai"}
 public class User {
     private Long id;
 
-    @JsonProperty("full_name")  // Doi ten field trong JSON
+    @JsonProperty("full_name")  // Đổi tên field trong JSON
     private String name;
 
-    @JsonIgnore                 // An field, khong tra ve
+    @JsonIgnore                 // Ẩn field, không trả về
     private String password;
 
-    @JsonFormat(pattern = "dd/MM/yyyy")  // Format ngay
+    @JsonFormat(pattern = "dd/MM/yyyy")  // Format ngày
     private LocalDate birthday;
 }
 // Output: {"id": 1, "full_name": "Thai", "birthday": "09/04/2026"}
 ```
 
-## Diem quan trong nho phong van
-1. `@RestController` tu dong serialize Object -> JSON
-2. **Jackson** la thu vien mac dinh de chuyen doi JSON
-3. Dung **ResponseEntity** khi can control HTTP status va headers
-4. Customize voi `@JsonProperty`, `@JsonIgnore`, `@JsonFormat`
+## Điểm quan trọng nhớ phỏng vấn
+1. `@RestController` tự động serialize Object -> JSON
+2. **Jackson** là thư viện mặc định để chuyển đổi JSON
+3. Dùng **ResponseEntity** khi cần control HTTP status và headers
+4. Customize với `@JsonProperty`, `@JsonIgnore`, `@JsonFormat`

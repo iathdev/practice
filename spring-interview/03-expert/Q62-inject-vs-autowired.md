@@ -1,26 +1,26 @@
 # Q62: What is the difference between @Inject and @Autowired? Which one to use?
 > **Dịch:** Sự khác nhau giữa @Inject và @Autowired là gì? Khi nào dùng cái nào?
 
-## Tra loi ngan gon
-> `@Autowired` la annotation cua **Spring**. `@Inject` la annotation chuan **JSR-330** (Java standard). Ca hai hoat dong **giong nhau** ve co ban, nhung `@Autowired` co them thuoc tinh `required`.
+## Trả lời ngắn gọn
+> `@Autowired` là annotation của **Spring**. `@Inject` là annotation chuẩn **JSR-330** (Java standard). Cả hai hoạt động **giống nhau** về cơ bản, nhưng `@Autowired` có thêm thuộc tính `required`.
 
-## Cach nho
+## Cách nhớ
 ```
-@Autowired = iPhone (cua Apple/Spring - nhieu tinh nang rieng)
-@Inject    = USB-C (chuan chung - dung cho moi framework)
+@Autowired = iPhone (của Apple/Spring - nhiều tính năng riêng)
+@Inject    = USB-C (chuẩn chung - dùng cho mọi framework)
 ```
 
-## So sanh chi tiet
+## So sánh chi tiết
 
 | | @Autowired | @Inject |
 |--|:---:|:---:|
-| Thu vien | Spring Framework | JSR-330 (javax.inject) |
-| Thuoc tinh `required` | Co (`required=false`) | **KHONG** |
+| Thư viện | Spring Framework | JSR-330 (javax.inject) |
+| Thuộc tính `required` | Có (`required=false`) | **KHÔNG** |
 | Qualifier | `@Qualifier` (Spring) | `@Named` (JSR-330) |
 | Default | byType | byType |
-| Optional DI | `required=false` | Dung `Optional<T>` hoac `@Nullable` |
+| Optional DI | `required=false` | Dùng `Optional<T>` hoặc `@Nullable` |
 
-## Vi du so sanh
+## Ví dụ so sánh
 
 ### @Autowired (Spring)
 ```java
@@ -29,11 +29,11 @@ public class UserService {
     @Autowired
     private UserRepository userRepo;
 
-    @Autowired(required = false)  // Khong loi neu khong co bean
+    @Autowired(required = false)  // Không lỗi nếu không có bean
     private CacheService cache;
 
     @Autowired
-    @Qualifier("emailNotifier")   // Chi dinh bean cu the
+    @Qualifier("emailNotifier")   // Chỉ định bean cụ thể
     private Notifier notifier;
 }
 ```
@@ -45,48 +45,48 @@ public class UserService {
     @Inject
     private UserRepository userRepo;
 
-    @Inject                        // Khong co `required` attribute
-    private Optional<CacheService> cache; // Dung Optional thay the
+    @Inject                        // Không có `required` attribute
+    private Optional<CacheService> cache; // Dùng Optional thay thế
 
     @Inject
-    @Named("emailNotifier")       // @Named thay vi @Qualifier
+    @Named("emailNotifier")       // @Named thay vì @Qualifier
     private Notifier notifier;
 }
 ```
 
-## Khi nao dung cai nao?
+## Khi nào dùng cái nào?
 
 ```
-Dung @Autowired khi:
-  - Project chi dung Spring (99% truong hop)
-  - Can `required = false`
-  - Team quen dung Spring annotations
+Dùng @Autowired khi:
+  - Project chỉ dùng Spring (99% trường hợp)
+  - Cần `required = false`
+  - Team quen dùng Spring annotations
 
-Dung @Inject khi:
-  - Can portable giua cac DI framework (Spring, Guice, CDI)
-  - Theo chuan Java (JSR-330)
-  - Muon giam phu thuoc vao Spring API
+Dùng @Inject khi:
+  - Cần portable giữa các DI framework (Spring, Guice, CDI)
+  - Theo chuẩn Java (JSR-330)
+  - Muốn giảm phụ thuộc vào Spring API
 
-Thuc te: HAU HET project dung @Autowired
-         Hoac tot hon: CONSTRUCTOR INJECTION (khong can annotation nao ca)
+Thực tế: HẦU HẾT project dùng @Autowired
+         Hoặc tốt hơn: CONSTRUCTOR INJECTION (không cần annotation nào cả)
 ```
 
-### Best practice: Constructor Injection (khong can ca 2!)
+### Best practice: Constructor Injection (không cần cả 2!)
 ```java
 @Service
 public class UserService {
     private final UserRepository userRepo;
 
-    // Khong can @Autowired hay @Inject
-    // Spring tu dong inject khi chi co 1 constructor
+    // Không cần @Autowired hay @Inject
+    // Spring tự động inject khi chỉ có 1 constructor
     public UserService(UserRepository userRepo) {
         this.userRepo = userRepo;
     }
 }
 ```
 
-## Diem quan trong nho phong van
+## Điểm quan trọng nhớ phỏng vấn
 1. `@Autowired` = Spring, `@Inject` = Java standard (JSR-330)
-2. Chuc nang **tuong tu**, `@Autowired` co them `required`
-3. **Constructor injection** la best practice - **khong can** annotation nao
-4. Thuc te: **dung @Autowired** (vi da dung Spring roi)
+2. Chức năng **tương tự**, `@Autowired` có thêm `required`
+3. **Constructor injection** là best practice - **không cần** annotation nào
+4. Thực tế: **dùng @Autowired** (vì đã dùng Spring rồi)

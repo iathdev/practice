@@ -1,27 +1,27 @@
 # Q44: What's the difference between @Component, @Controller, @Repository & @Service?
 > **Dịch:** Sự khác nhau giữa @Component, @Controller, @Repository và @Service là gì?
 
-## Tra loi ngan gon
-> Tat ca deu la **stereotype annotations** de danh dau class la Spring bean. `@Controller`, `@Service`, `@Repository` la **specialization** cua `@Component`, them chuc nang rieng cho tung layer.
+## Trả lời ngắn gọn
+> Tất cả đều là **stereotype annotations** để đánh dấu class là Spring bean. `@Controller`, `@Service`, `@Repository` là **specialization** (biến thể chuyên biệt) của `@Component`, thêm chức năng riêng cho từng layer.
 
-## Cach nho
+## Cách nhớ
 ```
-@Component  = Nhan vien (chung chung)
-@Controller = Le tan      (tiep khach - web layer)
-@Service    = Ky su       (xu ly cong viec - business layer)
-@Repository = Thu kho     (quan ly kho hang - data layer)
+@Component  = Nhân viên (chung chung)
+@Controller = Lễ tân      (tiếp khách - web layer)
+@Service    = Kỹ sư       (xử lý công việc - business layer)
+@Repository = Thủ kho     (quản lý kho hàng - data layer)
 ```
 
-## So sanh
+## So sánh
 
-| Annotation | Layer | Chuc nang dac biet |
+| Annotation | Layer | Chức năng đặc biệt |
 |-----------|-------|-------------------|
-| `@Component` | Chung | Khong co gi dac biet |
-| `@Controller` | Web/Presentation | Xu ly HTTP request, DispatcherServlet nhan dien |
-| `@Service` | Business/Service | Khong co gi dac biet (semantic only) |
-| `@Repository` | Data/Persistence | **Tu dong dich** exception sang DataAccessException |
+| `@Component` | Chung | Không có gì đặc biệt |
+| `@Controller` | Web/Presentation | Xử lý HTTP request, DispatcherServlet nhận diện |
+| `@Service` | Business/Service | Không có gì đặc biệt (chỉ mang ý nghĩa ngữ nghĩa) |
+| `@Repository` | Data/Persistence | **Tự động dịch** exception sang DataAccessException |
 
-## Dac biet cua @Repository
+## Đặc biệt của @Repository
 
 ```java
 @Repository
@@ -30,16 +30,16 @@ public class UserDao {
     private JdbcTemplate jdbcTemplate;
 
     public User findById(Long id) {
-        // Neu JDBC nem SQLException
-        // Spring tu dong chuyen thanh DataAccessException (unchecked)
-        // -> Khong can try-catch SQLException khap noi
+        // Nếu JDBC ném SQLException
+        // Spring tự động chuyển thành DataAccessException (unchecked)
+        // -> Không cần try-catch SQLException khắp nơi
         return jdbcTemplate.queryForObject("SELECT * FROM users WHERE id=?",
             new BeanPropertyRowMapper<>(User.class), id);
     }
 }
 ```
 
-## Kien truc tang (layered architecture)
+## Kiến trúc tầng (layered architecture)
 
 ```
 @Controller / @RestController    <-- Presentation Layer
@@ -51,7 +51,7 @@ public class UserDao {
     Database
 ```
 
-## Vi du day du
+## Ví dụ đầy đủ
 ```java
 @RestController                           // Web layer
 @RequestMapping("/api/users")
@@ -77,8 +77,8 @@ public class UserService {
 public interface UserRepository extends JpaRepository<User, Long> { }
 ```
 
-## Diem quan trong nho phong van
-1. `@Service` va `@Component` **ve ky thuat** giong nhau (chi khac ngu nghia)
-2. `@Repository` them **exception translation** (quan trong!)
-3. `@Controller` giup **DispatcherServlet** nhan dien handler
-4. Dung dung annotation theo **layer** de code ro rang va nhat quan
+## Điểm quan trọng nhớ phỏng vấn
+1. `@Service` và `@Component` **về kỹ thuật** giống nhau (chỉ khác ngữ nghĩa)
+2. `@Repository` thêm **exception translation** (quan trọng!)
+3. `@Controller` giúp **DispatcherServlet** nhận diện handler
+4. Dùng đúng annotation theo **layer** để code rõ ràng và nhất quán

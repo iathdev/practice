@@ -1,18 +1,18 @@
 # Q24: Explain the difference between @Controller and @RestController
 > **Dịch:** Giải thích sự khác nhau giữa @Controller và @RestController trong Spring
 
-## Tra loi ngan gon
-> `@Controller` tra ve **ten View** (HTML page). `@RestController` = `@Controller` + `@ResponseBody`, tra ve **data truc tiep** (JSON/XML).
+## Trả lời ngắn gọn
+> `@Controller` trả về **tên View** (HTML page). `@RestController` = `@Controller` + `@ResponseBody`, trả về **data trực tiếp** (JSON/XML).
 
-## Cach nho
+## Cách nhớ
 ```
-@Controller     = Nha sach (tra ve SACH = HTML page)
-@RestController = May ATM (tra ve TIEN = JSON data)
+@Controller     = Nhà sách (trả về SÁCH = HTML page)
+@RestController = Máy ATM (trả về TIỀN = JSON data)
 ```
 
-## So sanh
+## So sánh
 
-### @Controller (tra ve View)
+### @Controller (trả về View)
 ```java
 @Controller
 public class PageController {
@@ -20,55 +20,55 @@ public class PageController {
     @GetMapping("/home")
     public String home(Model model) {
         model.addAttribute("name", "Thai");
-        return "home"; // -> Tim file templates/home.html
+        return "home"; // -> Tìm file templates/home.html
     }
 
-    // Muon tra JSON thi phai them @ResponseBody
+    // Muốn trả JSON thì phải thêm @ResponseBody
     @GetMapping("/api/user")
-    @ResponseBody  // Phai them tung method!
+    @ResponseBody  // Phải thêm từng method!
     public User getUser() {
         return new User("Thai");
     }
 }
 ```
 
-### @RestController (tra ve JSON)
+### @RestController (trả về JSON)
 ```java
-@RestController  // = @Controller + @ResponseBody cho TAT CA method
+@RestController  // = @Controller + @ResponseBody cho TẤT CẢ method
 @RequestMapping("/api")
 public class ApiController {
 
     @GetMapping("/users")
     public List<User> getUsers() {
-        return userService.findAll(); // -> Tu dong tra JSON
+        return userService.findAll(); // -> Tự động trả JSON
     }
 
     @GetMapping("/users/{id}")
     public User getUser(@PathVariable Long id) {
-        return userService.findById(id); // -> Tu dong tra JSON
+        return userService.findById(id); // -> Tự động trả JSON
     }
 }
 ```
 
-## Bang so sanh
+## Bảng so sánh
 
 | | @Controller | @RestController |
 |--|:-----------:|:---------------:|
-| Tra ve | View name (String) | Object -> JSON |
-| @ResponseBody | Phai them thu cong | Tu dong co san |
-| Dung voi | Thymeleaf, JSP | REST API |
-| ViewResolver | **Co** su dung | **KHONG** su dung |
+| Trả về | View name (String) | Object -> JSON |
+| @ResponseBody | Phải thêm thủ công | Tự động có sẵn |
+| Dùng với | Thymeleaf, JSP | REST API |
+| ViewResolver | **Có** sử dụng | **KHÔNG** sử dụng |
 
-## Khi nao dung cai nao?
+## Khi nào dùng cái nào?
 
 ```
-Lam website (server-side rendering) -> @Controller + Thymeleaf
-Lam REST API (cho frontend/mobile)  -> @RestController
-Lam ca 2 trong 1 app                -> Tach rieng controller
+Làm website (server-side rendering) -> @Controller + Thymeleaf
+Làm REST API (cho frontend/mobile)  -> @RestController
+Làm cả 2 trong 1 app                -> Tách riêng controller
 ```
 
-## Diem quan trong nho phong van
+## Điểm quan trọng nhớ phỏng vấn
 1. `@RestController` = `@Controller` + `@ResponseBody`
-2. `@Controller` can **ViewResolver**, `@RestController` thi **khong**
-3. `@RestController` tu dong dung **Jackson** de serialize JSON
-4. Co the ket hop: `@Controller` + `@ResponseBody` tren tung method
+2. `@Controller` cần **ViewResolver**, `@RestController` thì **không**
+3. `@RestController` tự động dùng **Jackson** để serialize JSON
+4. Có thể kết hợp: `@Controller` + `@ResponseBody` trên từng method

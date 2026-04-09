@@ -1,19 +1,19 @@
 # Q9: How to handle exceptions in Spring MVC Framework?
 > **Dịch:** Xử lý ngoại lệ (exception) trong Spring MVC như thế nào?
 
-## Tra loi ngan gon
-> Spring MVC ho tro 3 cach xu ly exception:
-> 1. **@ExceptionHandler** trong Controller (cuc bo)
-> 2. **@ControllerAdvice** (toan cuc - KHUYEN DUNG)
+## Trả lời ngắn gọn
+> Spring MVC hỗ trợ 3 cách xử lý exception:
+> 1. **@ExceptionHandler** trong Controller (cục bộ)
+> 2. **@ControllerAdvice** (toàn cục - KHUYÊN DÙNG)
 > 3. **HandlerExceptionResolver** (customize)
 
-## Cach nho
+## Cách nhớ
 ```
-@ExceptionHandler   = Bao ve rieng (chi bao ve 1 phong)
-@ControllerAdvice   = Bao ve toa nha (bao ve tat ca phong)
+@ExceptionHandler   = Bảo vệ riêng (chỉ bảo vệ 1 phòng)
+@ControllerAdvice   = Bảo vệ tòa nhà (bảo vệ tất cả phòng)
 ```
 
-## Cach 1: @ExceptionHandler (trong 1 Controller)
+## Cách 1: @ExceptionHandler (trong 1 Controller)
 
 ```java
 @RestController
@@ -25,7 +25,7 @@ public class UserController {
             .orElseThrow(() -> new UserNotFoundException("User not found: " + id));
     }
 
-    // Chi xu ly exception TRONG controller nay thoi
+    // Chỉ xử lý exception TRONG controller này thôi
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleNotFound(UserNotFoundException ex) {
         ErrorResponse error = new ErrorResponse(404, ex.getMessage());
@@ -34,10 +34,10 @@ public class UserController {
 }
 ```
 
-## Cach 2: @ControllerAdvice (TOAN CUC - KHUYEN DUNG)
+## Cách 2: @ControllerAdvice (TOÀN CỤC - KHUYÊN DÙNG)
 
 ```java
-// Xu ly exception cho TAT CA controller
+// Xử lý exception cho TẤT CẢ controller
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -76,23 +76,23 @@ public record ErrorResponse(int status, String message, List<String> details) {
 }
 ```
 
-## Cach 3: Custom Exception voi @ResponseStatus
+## Cách 3: Custom Exception với @ResponseStatus
 
 ```java
-@ResponseStatus(HttpStatus.NOT_FOUND)  // Tu dong tra ve 404
+@ResponseStatus(HttpStatus.NOT_FOUND)  // Tự động trả về 404
 public class UserNotFoundException extends RuntimeException {
     public UserNotFoundException(String message) {
         super(message);
     }
 }
 
-// Khi throw exception nay, Spring tu dong tra ve HTTP 404
+// Khi throw exception này, Spring tự động trả về HTTP 404
 ```
 
-## Vi du day du: Cau truc Exception Handling tot
+## Ví dụ đầy đủ: Cấu trúc Exception Handling tốt
 
 ```java
-// 1. Dinh nghia custom exceptions
+// 1. Định nghĩa custom exceptions
 public class ResourceNotFoundException extends RuntimeException {
     public ResourceNotFoundException(String resource, Long id) {
         super(resource + " not found with id: " + id);
@@ -124,7 +124,7 @@ public class GlobalExceptionHandler {
     }
 }
 
-// 3. Su dung trong Service
+// 3. Sử dụng trong Service
 @Service
 public class UserService {
     public User findById(Long id) {
@@ -134,8 +134,8 @@ public class UserService {
 }
 ```
 
-## Diem quan trong nho phong van
-1. **@ControllerAdvice** = xu ly exception **toan cuc** (best practice)
+## Điểm quan trọng nhớ phỏng vấn
+1. **@ControllerAdvice** = xử lý exception **toàn cục** (best practice)
 2. `@RestControllerAdvice` = `@ControllerAdvice` + `@ResponseBody`
-3. Thu tu uu tien: **exception cu the** truoc, **Exception chung** sau
-4. Nen tao **custom exception** rieng cho tung loai loi
+3. Thứ tự ưu tiên: **exception cụ thể** trước, **Exception chung** sau
+4. Nên tạo **custom exception** riêng cho từng loại lỗi

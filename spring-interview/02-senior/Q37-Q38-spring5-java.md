@@ -4,22 +4,22 @@
 # Q38: How does Spring 5 integrate with JDK 9 modularity?
 > **Dịch:** Spring 5 tích hợp với JDK 9 Modularity như thế nào?
 
-## Q37: Spring 5 va Java versions
+## Q37: Spring 5 và Java versions
 
-### Tra loi ngan gon
-> **Khong.** Spring 5 yeu cau toi thieu **Java 8**. Khong ho tro Java 6 hay 7 nua.
+### Trả lời ngắn gọn
+> **Không.** Spring 5 yêu cầu tối thiểu **Java 8**. Không hỗ trợ Java 6 hay 7 nữa.
 
-### Bang tuong thich
+### Bảng tương thích
 
-| Spring version | Java toi thieu | Java khuyen dung |
+| Spring version | Java tối thiểu | Java khuyên dùng |
 |:-:|:-:|:-:|
 | Spring 4.x | Java 6 | Java 7-8 |
 | Spring 5.x | **Java 8** | Java 8-17 |
 | Spring 6.x | **Java 17** | Java 17-21 |
 
-### Tai sao can Java 8+?
+### Tại sao cần Java 8+?
 ```java
-// Spring 5 su dung nhieu tinh nang Java 8:
+// Spring 5 sử dụng nhiều tính năng Java 8:
 // 1. Lambda
 bean.ifPresent(b -> process(b));
 
@@ -39,35 +39,35 @@ private LocalDate birthday;
 
 ---
 
-## Q38: Spring 5 va JDK 9 Modularity
+## Q38: Spring 5 và JDK 9 Modularity
 
-### Tra loi ngan gon
-> Spring 5 ho tro **JDK 9 module system** (JPMS) bang cach cung cap **Automatic-Module-Name** trong moi jar. Tuy nhien, Spring **KHONG bat buoc** su dung module system.
+### Trả lời ngắn gọn
+> Spring 5 hỗ trợ **JDK 9 module system** (JPMS) bằng cách cung cấp **Automatic-Module-Name** trong mỗi jar. Tuy nhiên, Spring **KHÔNG bắt buộc** sử dụng module system.
 
-### Cach tich hop
+### Cách tích hợp
 ```java
-// Moi Spring jar co Automatic-Module-Name trong MANIFEST.MF:
+// Mỗi Spring jar có Automatic-Module-Name trong MANIFEST.MF:
 // spring-core        -> spring.core
 // spring-context     -> spring.context
 // spring-web         -> spring.web
 // spring-webmvc      -> spring.webmvc
 
-// module-info.java (neu ban dung JPMS)
+// module-info.java (nếu bạn dùng JPMS)
 module com.myapp {
     requires spring.core;
     requires spring.context;
     requires spring.web;
-    opens com.myapp to spring.core; // cho phep reflection
+    opens com.myapp to spring.core; // cho phép reflection
 }
 ```
 
-### Thuc te
-- Hau het project **KHONG** dung JPMS
-- Spring van chay tot **khong can** module-info.java
-- Chi can dam bao Java version tuong thich
+### Thực tế
+- Hầu hết project **KHÔNG** dùng JPMS
+- Spring vẫn chạy tốt **không cần** module-info.java
+- Chỉ cần đảm bảo Java version tương thích
 
-## Diem quan trong nho phong van
+## Điểm quan trọng nhớ phỏng vấn
 1. Spring 5 = **Java 8+**, Spring 6 = **Java 17+**
-2. Spring 5 **ho tro** JDK 9 modules nhung **khong bat buoc**
-3. Moi Spring jar co **Automatic-Module-Name**
-4. Tinh nang Java 8 (lambda, Optional, Stream) duoc dung rong rai trong Spring 5
+2. Spring 5 **hỗ trợ** JDK 9 modules nhưng **không bắt buộc**
+3. Mỗi Spring jar có **Automatic-Module-Name**
+4. Tính năng Java 8 (lambda, Optional, Stream) được dùng rộng rãi trong Spring 5

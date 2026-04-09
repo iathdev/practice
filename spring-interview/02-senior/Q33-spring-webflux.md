@@ -1,30 +1,30 @@
 # Q33: What is Spring WebFlux?
 > **Dịch:** Spring WebFlux là gì?
 
-## Tra loi ngan gon
-> **Spring WebFlux** la reactive web framework cua Spring 5, ho tro **non-blocking I/O** va **backpressure**. Dua tren Project Reactor voi 2 kieu du lieu: **Mono** (0-1 ket qua) va **Flux** (0-N ket qua).
+## Trả lời ngắn gọn
+> **Spring WebFlux** là reactive web framework của Spring 5, hỗ trợ **non-blocking I/O** và **backpressure**. Dựa trên Project Reactor với 2 kiểu dữ liệu: **Mono** (0-1 kết quả) và **Flux** (0-N kết quả).
 
-## Cach nho
+## Cách nhớ
 ```
-Spring MVC    = Nha hang truyen thong (1 boi ban / 1 ban)
-Spring WebFlux = Nha hang tu phuc vu  (1 boi ban / nhieu ban)
+Spring MVC    = Nhà hàng truyền thống (1 bồi bàn / 1 bàn)
+Spring WebFlux = Nhà hàng tự phục vụ  (1 bồi bàn / nhiều bàn)
 
-MVC:     1 thread cho 1 request (doi I/O thi thread ngoi khong)
-WebFlux: 1 thread xu ly nhieu request (khong doi, chuyen request khac)
+MVC:     1 thread cho 1 request (đợi I/O thì thread ngồi không)
+WebFlux: 1 thread xử lý nhiều request (không đợi, chuyển request khác)
 ```
 
-## So sanh MVC vs WebFlux
+## So sánh MVC vs WebFlux
 
 | | Spring MVC | Spring WebFlux |
 |--|:---:|:---:|
-| Mo hinh | Blocking | **Non-blocking** |
-| Thread | 1 thread / request | Event loop (it thread) |
+| Mô hình | Blocking | **Non-blocking** |
+| Thread | 1 thread / request | Event loop (ít thread) |
 | Servlet | Servlet API | Reactive Streams |
-| Server | Tomcat, Jetty | **Netty** (mac dinh), Tomcat |
-| Kieu tra ve | Object, List | **Mono, Flux** |
-| Use case | CRUD, don gian | High concurrency, streaming |
+| Server | Tomcat, Jetty | **Netty** (mặc định), Tomcat |
+| Kiểu trả về | Object, List | **Mono, Flux** |
+| Use case | CRUD, đơn giản | High concurrency, streaming |
 
-## Vi du code
+## Ví dụ code
 
 ### Controller style (annotation)
 ```java
@@ -35,13 +35,13 @@ public class UserController {
     @Autowired
     private ReactiveUserRepository userRepo;
 
-    // Tra ve Mono (0-1 ket qua)
+    // Trả về Mono (0-1 kết quả)
     @GetMapping("/{id}")
     public Mono<User> getUser(@PathVariable String id) {
         return userRepo.findById(id);
     }
 
-    // Tra ve Flux (0-N ket qua)
+    // Trả về Flux (0-N kết quả)
     @GetMapping
     public Flux<User> getAllUsers() {
         return userRepo.findAll();
@@ -85,24 +85,24 @@ public class UserHandler {
 }
 ```
 
-## Khi nao dung WebFlux?
+## Khi nào dùng WebFlux?
 
 ```
-NEN dung:
-- Ung dung can xu ly NHIEU request dong thoi (10k+ concurrent)
+NÊN dùng:
+- Ứng dụng cần xử lý NHIỀU request đồng thời (10k+ concurrent)
 - Streaming data (real-time feed, chat)
-- Microservices goi nhieu API cung luc
-- I/O intensive (nhieu goi API, doc file)
+- Microservices gọi nhiều API cùng lúc
+- I/O intensive (nhiều gọi API, đọc file)
 
-KHONG nen dung:
-- CRUD don gian
-- Team chua quen reactive programming
-- Dung JDBC (blocking) - can R2DBC thay the
-- CPU intensive (tinh toan nang)
+KHÔNG nên dùng:
+- CRUD đơn giản
+- Team chưa quen reactive programming
+- Dùng JDBC (blocking) - cần R2DBC thay thế
+- CPU intensive (tính toán nặng)
 ```
 
-## Diem quan trong nho phong van
-1. WebFlux = **Non-blocking**, dua tren **Reactor** (Mono/Flux)
-2. Chay tren **Netty** mac dinh (khong phai Tomcat)
-3. **KHONG** nhanh hon MVC cho tung request, nhung xu ly **nhieu request** tot hon
-4. Can dung **R2DBC** thay JDBC (vi JDBC la blocking)
+## Điểm quan trọng nhớ phỏng vấn
+1. WebFlux = **Non-blocking**, dựa trên **Reactor** (Mono/Flux)
+2. Chạy trên **Netty** mặc định (không phải Tomcat)
+3. **KHÔNG** nhanh hơn MVC cho từng request, nhưng xử lý **nhiều request** tốt hơn
+4. Cần dùng **R2DBC** thay JDBC (vì JDBC là blocking)

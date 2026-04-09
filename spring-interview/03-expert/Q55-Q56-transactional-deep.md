@@ -6,19 +6,19 @@
 
 ---
 
-## Q55: @Transactional dat o dau?
+## Q55: @Transactional đặt ở đâu?
 
-### Tra loi ngan gon
-> Dat o **Service layer** (khong phai Controller hay Repository). Co the dat o **class level** (ap dung cho tat ca method) hoac **method level** (chi method do).
+### Trả lời ngắn gọn
+> Đặt ở **Service layer** (không phải Controller hay Repository). Có thể đặt ở **class level** (áp dụng cho tất cả method) hoặc **method level** (chỉ method đó).
 
 ### Best practices
 ```java
-// DUNG - Dat o Service layer
+// ĐÚNG - Đặt ở Service layer
 @Service
-@Transactional(readOnly = true) // Mac dinh readonly cho tat ca method
+@Transactional(readOnly = true) // Mặc định readonly cho tất cả method
 public class UserService {
 
-    public List<User> findAll() { // readOnly = true (ke thua class)
+    public List<User> findAll() { // readOnly = true (kế thừa class)
         return userRepo.findAll();
     }
 
@@ -28,77 +28,77 @@ public class UserService {
     }
 }
 
-// SAI - Khong nen dat o Controller
+// SAI - Không nên đặt ở Controller
 @RestController
 public class UserController {
-    @Transactional // KHONG NEN! Controller khong nen biet ve transaction
+    @Transactional // KHÔNG NÊN! Controller không nên biết về transaction
     @PostMapping("/users")
     public User create(@RequestBody UserDto dto) { }
 }
 
-// SAI - Khong nen dat o Repository (qua thap)
+// SAI - Không nên đặt ở Repository (quá thấp)
 @Repository
 public interface UserRepo extends JpaRepository<User, Long> {
-    @Transactional // Khong can - Spring Data da co san
+    @Transactional // Không cần - Spring Data đã có sẵn
     List<User> findByName(String name);
 }
 ```
 
-### Tai sao Service layer?
+### Tại sao Service layer?
 ```
-Controller - khong biet ve database
-Service    - biet LOGIC nao can transaction  <-- DAT O DAY
-Repository - moi method la 1 query don le
+Controller - không biết về database
+Service    - biết LOGIC nào cần transaction  <-- ĐẶT Ở ĐÂY
+Repository - mỗi method là 1 query đơn lẻ
 ```
 
 ---
 
-## Q56: Dieu gi xay ra khi dung @Transactional?
+## Q56: Điều gì xảy ra khi dùng @Transactional?
 
-### Tra loi ngan gon
-> Spring tao **proxy** bao quanh bean. Khi method duoc goi, proxy: (1) mo transaction, (2) goi method goc, (3) commit neu thanh cong / rollback neu exception.
+### Trả lời ngắn gọn
+> Spring tạo **proxy** bao quanh bean. Khi method được gọi, proxy: (1) mở transaction, (2) gọi method gốc, (3) commit nếu thành công / rollback nếu exception.
 
-### So do chi tiet
+### Sơ đồ chi tiết
 
 ```
-Client goi: userService.create(dto)
+Client gọi: userService.create(dto)
      |
      v
 +------------------------------------------+
-| TransactionProxy (Spring tao tu dong)     |
+| TransactionProxy (Spring tạo tự động)     |
 |                                          |
-| 1. Lay TransactionManager               |
+| 1. Lấy TransactionManager               |
 | 2. transactionManager.getTransaction()   |
-|    -> Lay connection tu DataSource       |
+|    -> Lấy connection từ DataSource       |
 |    -> connection.setAutoCommit(false)    |
 |                                          |
-| 3. Goi TARGET method: create(dto)        |
+| 3. Gọi TARGET method: create(dto)        |
 |    |                                     |
 |    +---> userRepo.save(entity)           |
-|    |     (dung CUNG connection)          |
+|    |     (dùng CÙNG connection)          |
 |    |                                     |
-| 4a. Thanh cong -> connection.commit()    |
+| 4a. Thành công -> connection.commit()    |
 | 4b. Exception  -> connection.rollback()  |
 |                                          |
-| 5. Tra connection ve pool               |
+| 5. Trả connection về pool               |
 +------------------------------------------+
 ```
 
-### Code tuong duong cua proxy
+### Code tương đương của proxy
 
 ```java
-// Spring TAO PROXY tuong duong nhu nay:
+// Spring TẠO PROXY tương đương như này:
 public class UserService$$Proxy extends UserService {
     
     private TransactionManager txManager;
-    private UserService target; // Bean goc
+    private UserService target; // Bean gốc
 
     @Override
     public User create(UserDto dto) {
         TransactionStatus tx = txManager.getTransaction(
             new DefaultTransactionDefinition());
         try {
-            User result = target.create(dto); // Goi method THAT
+            User result = target.create(dto); // Gọi method THẬT
             txManager.commit(tx);             // Commit
             return result;
         } catch (RuntimeException e) {
@@ -109,58 +109,58 @@ public class UserService$$Proxy extends UserService {
 }
 ```
 
-### Cac buoc noi bo chi tiet
+### Các bước nội bộ chi tiết
 
 ```
-1. TransactionInterceptor nhan cuoc goi
-2. Kiem tra TransactionAttribute (propagation, isolation, timeout...)
+1. TransactionInterceptor nhận cuộc gọi
+2. Kiểm tra TransactionAttribute (propagation, isolation, timeout...)
 3. PlatformTransactionManager.getTransaction()
-   - Voi JDBC: DataSourceTransactionManager
-   - Voi JPA:  JpaTransactionManager
-4. Luu TransactionStatus vao ThreadLocal (TransactionSynchronizationManager)
-5. Thuc thi method goc
-6. Neu thanh cong:
+   - Với JDBC: DataSourceTransactionManager
+   - Với JPA:  JpaTransactionManager
+4. Lưu TransactionStatus vào ThreadLocal (TransactionSynchronizationManager)
+5. Thực thi method gốc
+6. Nếu thành công:
    - Flush EntityManager (JPA)
    - connection.commit()
-7. Neu exception:
-   - Kiem tra rollbackFor / noRollbackFor
-   - connection.rollback() (neu can)
-8. Don dep: tra connection, clear ThreadLocal
+7. Nếu exception:
+   - Kiểm tra rollbackFor / noRollbackFor
+   - connection.rollback() (nếu cần)
+8. Dọn dẹp: trả connection, clear ThreadLocal
 ```
 
-### Luu y QUAN TRONG: Self-invocation
+### Lưu ý QUAN TRỌNG: Self-invocation
 
 ```java
 @Service
 public class UserService {
     
     public void methodA() {
-        this.methodB(); // GOI TRUC TIEP -> bypass proxy -> @Transactional BI BO QUA!
+        this.methodB(); // GỌI TRỰC TIẾP -> bypass proxy -> @Transactional BỊ BỎ QUA!
     }
 
     @Transactional
     public void methodB() {
-        // Transactional KHONG hoat dong khi goi tu methodA!
+        // Transactional KHÔNG hoạt động khi gọi từ methodA!
     }
 }
 
-// GIAI PHAP 1: Inject self
+// GIẢI PHÁP 1: Inject self
 @Service
 public class UserService {
     @Autowired
-    private UserService self; // Inject proxy cua chinh minh
+    private UserService self; // Inject proxy của chính mình
 
     public void methodA() {
-        self.methodB(); // Goi qua PROXY -> @Transactional HOAT DONG
+        self.methodB(); // Gọi qua PROXY -> @Transactional HOẠT ĐỘNG
     }
 }
 
-// GIAI PHAP 2: Tach ra service khac
+// GIẢI PHÁP 2: Tách ra service khác
 ```
 
-## Diem quan trong nho phong van
-1. Dat @Transactional o **Service layer** (best practice)
-2. Spring tao **PROXY** de quan ly transaction tu dong
-3. Proxy dung **TransactionManager** + **ThreadLocal** luu trang thai
-4. **Self-invocation** khong hoat dong vi **bypass proxy**
-5. Mac dinh chi rollback **RuntimeException** (unchecked)
+## Điểm quan trọng nhớ phỏng vấn
+1. Đặt @Transactional ở **Service layer** (best practice)
+2. Spring tạo **PROXY** để quản lý transaction tự động
+3. Proxy dùng **TransactionManager** + **ThreadLocal** lưu trạng thái
+4. **Self-invocation** không hoạt động vì **bypass proxy**
+5. Mặc định chỉ rollback **RuntimeException** (unchecked)

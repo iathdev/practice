@@ -1,40 +1,40 @@
 # Q31: What are the different types of Advices?
 > **Dịch:** Các loại Advice khác nhau là gì?
 
-## Tra loi ngan gon
-> Advice la **hanh dong** thuc hien tai mot **Join Point**. Co 5 loai: **@Before, @After, @AfterReturning, @AfterThrowing, @Around**.
+## Trả lời ngắn gọn
+> Advice là **hành động** thực hiện tại một **Join Point**. Có 5 loại: **@Before, @After, @AfterReturning, @AfterThrowing, @Around**.
 
-## Cach nho
+## Cách nhớ
 ```
-Method goc: [===THUC THI===]
+Method gốc: [===THỰC THI===]
 
 @Before          --> [===]
-@After           [===] -->          (luon chay, ca khi exception)
-@AfterReturning  [===] -->          (chi khi THANH CONG)
-@AfterThrowing   [===] --> X        (chi khi CO LOI)
-@Around      --> [===] -->          (bao quanh, MANH NHAT)
+@After           [===] -->          (luôn chạy, cả khi exception)
+@AfterReturning  [===] -->          (chỉ khi THÀNH CÔNG)
+@AfterThrowing   [===] --> X        (chỉ khi CÓ LỖI)
+@Around      --> [===] -->          (bao quanh, MẠNH NHẤT)
 ```
 
-## Vi du tung loai
+## Ví dụ từng loại
 
 ```java
 @Aspect
 @Component
 public class LoggingAspect {
 
-    // 1. @Before - Chay TRUOC method
+    // 1. @Before - Chạy TRƯỚC method
     @Before("execution(* com.example.service.*.*(..))")
     public void before(JoinPoint jp) {
         System.out.println("BEFORE: " + jp.getSignature().getName());
     }
 
-    // 2. @After - Chay SAU method (LUON CHAY, ke ca exception)
+    // 2. @After - Chạy SAU method (LUÔN CHẠY, kể cả exception)
     @After("execution(* com.example.service.*.*(..))")
     public void after(JoinPoint jp) {
         System.out.println("AFTER: " + jp.getSignature().getName());
     }
 
-    // 3. @AfterReturning - Chi chay khi THANH CONG
+    // 3. @AfterReturning - Chỉ chạy khi THÀNH CÔNG
     @AfterReturning(
         pointcut = "execution(* com.example.service.*.*(..))",
         returning = "result")
@@ -42,7 +42,7 @@ public class LoggingAspect {
         System.out.println("SUCCESS: " + jp.getSignature() + " -> " + result);
     }
 
-    // 4. @AfterThrowing - Chi chay khi CO EXCEPTION
+    // 4. @AfterThrowing - Chỉ chạy khi CÓ EXCEPTION
     @AfterThrowing(
         pointcut = "execution(* com.example.service.*.*(..))",
         throwing = "ex")
@@ -50,13 +50,13 @@ public class LoggingAspect {
         System.out.println("ERROR: " + jp.getSignature() + " -> " + ex.getMessage());
     }
 
-    // 5. @Around - BAO QUANH (manh nhat, lam duoc tat ca)
+    // 5. @Around - BAO QUANH (mạnh nhất, làm được tất cả)
     @Around("execution(* com.example.service.*.*(..))")
     public Object around(ProceedingJoinPoint pjp) throws Throwable {
         System.out.println("BEFORE (around)");
         long start = System.currentTimeMillis();
 
-        Object result = pjp.proceed(); // Goi method goc
+        Object result = pjp.proceed(); // Gọi method gốc
 
         long time = System.currentTimeMillis() - start;
         System.out.println("AFTER (around) - " + time + "ms");
@@ -65,30 +65,30 @@ public class LoggingAspect {
 }
 ```
 
-## Thu tu chay khi ket hop
+## Thứ tự chạy khi kết hợp
 
 ```
 @Around (before)
   @Before
-    [Method thuc thi]
-  @AfterReturning (neu thanh cong)
-  @AfterThrowing  (neu co loi)
-  @After          (luon chay)
+    [Method thực thi]
+  @AfterReturning (nếu thành công)
+  @AfterThrowing  (nếu có lỗi)
+  @After          (luôn chạy)
 @Around (after)
 ```
 
-## Bang tom tat
+## Bảng tóm tắt
 
-| Advice | Khi nao chay | Truy cap result | Truy cap exception | Thay doi ket qua |
+| Advice | Khi nào chạy | Truy cập result | Truy cập exception | Thay đổi kết quả |
 |--------|-------------|:---:|:---:|:---:|
-| @Before | Truoc method | Khong | Khong | Khong |
-| @After | Sau method (luon) | Khong | Khong | Khong |
-| @AfterReturning | Sau khi thanh cong | Co | Khong | Khong |
-| @AfterThrowing | Khi co exception | Khong | Co | Khong |
-| @Around | Bao quanh | Co | Co | **Co** |
+| @Before | Trước method | Không | Không | Không |
+| @After | Sau method (luôn) | Không | Không | Không |
+| @AfterReturning | Sau khi thành công | Có | Không | Không |
+| @AfterThrowing | Khi có exception | Không | Có | Không |
+| @Around | Bao quanh | Có | Có | **Có** |
 
-## Diem quan trong nho phong van
-1. **@Around** manh nhat - co the **thay doi** input/output, **bo qua** method goc
-2. **@After** luon chay (nhu `finally`), **@AfterReturning** chi khi thanh cong
-3. `ProceedingJoinPoint.proceed()` chi co trong **@Around**
-4. Thu tu chay: Around -> Before -> Method -> AfterReturning/AfterThrowing -> After -> Around
+## Điểm quan trọng nhớ phỏng vấn
+1. **@Around** mạnh nhất - có thể **thay đổi** input/output, **bỏ qua** method gốc
+2. **@After** luôn chạy (như `finally`), **@AfterReturning** chỉ khi thành công
+3. `ProceedingJoinPoint.proceed()` chỉ có trong **@Around**
+4. Thứ tự chạy: Around -> Before -> Method -> AfterReturning/AfterThrowing -> After -> Around

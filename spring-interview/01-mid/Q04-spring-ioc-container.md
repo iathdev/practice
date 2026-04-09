@@ -1,90 +1,90 @@
 # Q4: What is Spring IoC container?
 > **Dịch:** Spring IoC Container là gì?
 
-## Tra loi ngan gon
-> Spring IoC Container la **trai tim** cua Spring Framework, chiu trach nhiem **tao, cau hinh, quan ly vong doi** cua cac object (bean). IoC = Inversion of Control (dao nguoc quyen dieu khien).
+## Trả lời ngắn gọn
+> Spring IoC Container là **trái tim** của Spring Framework, chịu trách nhiệm **tạo, cấu hình, quản lý vòng đời** của các object (bean). IoC = Inversion of Control (đảo ngược quyền điều khiển).
 
-## Cach nho
+## Cách nhớ
 ```
-KHONG co IoC = Ban tu nau an (di cho, rua rau, nau, don dep)
-CO IoC       = Dat com Grab (chi noi can gi, nguoi khac lam het)
+KHÔNG có IoC = Bạn tự nấu ăn (đi chợ, rửa rau, nấu, dọn dẹp)
+CÓ IoC       = Đặt cơm Grab (chỉ nói cần gì, người khác làm hết)
 
-Container = "Quan ly nha hang" - biet tao mon gi, phuc vu cho ai
+Container = "Quản lý nhà hàng" - biết tạo món gì, phục vụ cho ai
 ```
 
-## So sanh: Khong IoC vs Co IoC
+## So sánh: Không IoC vs Có IoC
 
-### Khong co IoC (tu tao dependency):
+### Không có IoC (tự tạo dependency):
 ```java
 public class OrderService {
-    // TU TAO - phu thuoc chat vao class cu the
+    // TỰ TẠO - phụ thuộc chặt vào class cụ thể
     private UserRepository userRepo = new MySQLUserRepository();
     private EmailService email = new GmailEmailService();
     
-    // Muon doi sang PostgreSQL? -> Phai SUA CODE!
+    // Muốn đổi sang PostgreSQL? -> Phải SỬA CODE!
 }
 ```
 
-### Co IoC Container:
+### Có IoC Container:
 ```java
 @Service
 public class OrderService {
-    // CONTAINER TU INJECT - chi phu thuoc vao interface
+    // CONTAINER TỰ INJECT - chỉ phụ thuộc vào interface
     private final UserRepository userRepo;
     private final EmailService email;
     
     @Autowired
     public OrderService(UserRepository userRepo, EmailService email) {
-        this.userRepo = userRepo;  // Container quyet dinh inject cai nao
+        this.userRepo = userRepo;  // Container quyết định inject cái nào
         this.email = email;
     }
-    // Doi tu MySQL sang PostgreSQL? -> Chi can doi config, KHONG sua code!
+    // Đổi từ MySQL sang PostgreSQL? -> Chỉ cần đổi config, KHÔNG sửa code!
 }
 ```
 
-## 2 loai IoC Container
+## 2 loại IoC Container
 
-### 1. BeanFactory (co ban)
+### 1. BeanFactory (cơ bản)
 ```java
-// Lazy loading - chi tao bean khi duoc goi
+// Lazy loading - chỉ tạo bean khi được gọi
 BeanFactory factory = new XmlBeanFactory(
     new ClassPathResource("beans.xml")
 );
 MyBean bean = factory.getBean("myBean", MyBean.class);
 ```
 
-### 2. ApplicationContext (nang cao - THUONG DUNG)
+### 2. ApplicationContext (nâng cao - THƯỜNG DÙNG)
 ```java
-// Eager loading - tao tat ca singleton bean khi khoi dong
+// Eager loading - tạo tất cả singleton bean khi khởi động
 ApplicationContext ctx = new AnnotationConfigApplicationContext(AppConfig.class);
 MyBean bean = ctx.getBean(MyBean.class);
 ```
 
-## ApplicationContext lam duoc nhieu hon BeanFactory
+## ApplicationContext làm được nhiều hơn BeanFactory
 
-| Tinh nang | BeanFactory | ApplicationContext |
+| Tính năng | BeanFactory | ApplicationContext |
 |-----------|:-----------:|:------------------:|
-| Tao & quan ly bean | Co | Co |
-| Lazy loading | Mac dinh | Tuy chon |
-| Event publishing | Khong | Co |
-| Internationalization (i18n) | Khong | Co |
-| AOP tich hop | Co ban | Day du |
-| Auto BeanPostProcessor | Khong | Co |
+| Tạo & quản lý bean | Có | Có |
+| Lazy loading | Mặc định | Tùy chọn |
+| Event publishing | Không | Có |
+| Internationalization (i18n) | Không | Có |
+| AOP tích hợp | Cơ bản | Đầy đủ |
+| Auto BeanPostProcessor | Không | Có |
 
-## Container hoat dong nhu the nao?
+## Container hoạt động như thế nào?
 
 ```
 [Java Classes] + [Configuration] --> [IoC Container] --> [Ready Beans]
 
-Configuration co the la:
+Configuration có thể là:
   - XML:        <bean id="..." class="...">
   - Annotation: @Component, @Service, @Repository
   - Java:       @Configuration + @Bean
 ```
 
-## Vi du day du:
+## Ví dụ đầy đủ:
 ```java
-// 1. Dinh nghia bean bang annotation
+// 1. Định nghĩa bean bằng annotation
 @Service
 public class UserService {
     @Autowired
@@ -95,15 +95,15 @@ public class UserService {
     }
 }
 
-// 2. Container tu dong:
-//    - Quet tim @Service -> tao UserService
-//    - Quet tim @Repository -> tao UserRepository
-//    - Inject UserRepository vao UserService
-//    - Quan ly vong doi cua tat ca bean
+// 2. Container tự động:
+//    - Quét tìm @Service -> tạo UserService
+//    - Quét tìm @Repository -> tạo UserRepository
+//    - Inject UserRepository vào UserService
+//    - Quản lý vòng đời của tất cả bean
 ```
 
-## Diem quan trong nho phong van
-1. IoC Container = **Dao nguoc quyen dieu khien** (container tao object, khong phai developer)
-2. **2 loai**: BeanFactory (co ban) va ApplicationContext (thuong dung)
-3. Container doc **metadata** (XML/annotation/Java config) de biet cach tao bean
-4. Loi ich chinh: **Loose coupling**, de test, de thay doi implementation
+## Điểm quan trọng nhớ phỏng vấn
+1. IoC Container = **Đảo ngược quyền điều khiển** (container tạo object, không phải developer)
+2. **2 loại**: BeanFactory (cơ bản) và ApplicationContext (thường dùng)
+3. Container đọc **metadata** (XML/annotation/Java config) để biết cách tạo bean
+4. Lợi ích chính: **Loose coupling**, dễ test, dễ thay đổi implementation

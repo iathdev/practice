@@ -1,45 +1,45 @@
 # Q18: What is Spring IoC Container?
 > **Dịch:** Spring IoC Container là gì?
 
-## Tra loi ngan gon
-> Spring IoC Container la thanh phan **cot loi** cua Spring, chiu trach nhiem **tao, cau hinh va quan ly** cac object (bean). No doc **metadata** (annotation/XML/Java config) de biet cach tao va wire cac bean lai voi nhau.
+## Trả lời ngắn gọn
+> Spring IoC Container là thành phần **cốt lõi** của Spring, chịu trách nhiệm **tạo, cấu hình và quản lý** các object (bean). Nó đọc **metadata** (annotation/XML/Java config) để biết cách tạo và wire các bean lại với nhau.
 
-## Cach nho
+## Cách nhớ
 ```
-IoC = Inversion of Control = Dao nguoc quyen dieu khien
-  Truoc: Developer tao object (new UserService())
-  Sau:   Container tao object (container quyet dinh)
+IoC = Inversion of Control = Đảo ngược quyền điều khiển
+  Trước: Developer tạo object (new UserService())
+  Sau:   Container tạo object (container quyết định)
 
-Giong nhu: Ban khong tu tuyen nhan vien, ma nho HR lam
+Giống như: Bạn không tự tuyển nhân viên, mà nhờ HR làm
 ```
 
-## IoC Container lam nhung gi?
+## IoC Container làm những gì?
 
 ```
-1. DOC metadata (cau hinh)
+1. ĐỌC metadata (cấu hình)
    - @Component, @Service, @Repository, @Controller
    - @Configuration + @Bean
-   - XML config (cu)
+   - XML config (cũ)
 
-2. TAO bean (instantiate)
-   - Goi constructor
-   - Quan ly singleton/prototype
+2. TẠO bean (instantiate)
+   - Gọi constructor
+   - Quản lý singleton/prototype
 
 3. INJECT dependency
    - Constructor injection
    - Setter injection
    - Field injection
 
-4. QUAN LY vong doi
+4. QUẢN LÝ vòng đời
    - Init (@PostConstruct)
    - Use
    - Destroy (@PreDestroy)
 ```
 
-## Vi du minh hoa
+## Ví dụ minh họa
 
 ```java
-// 1. Dinh nghia cac bean
+// 1. Định nghĩa các bean
 @Repository
 public class UserRepository {
     public User findById(Long id) { /*...*/ }
@@ -63,15 +63,15 @@ public class UserController {
     }
 }
 
-// 2. Container tu dong:
-//    - Quet package -> tim cac class co @Component/@Service/@Repository/@Controller
-//    - Tao UserRepository
-//    - Tao UserService, inject UserRepository vao
-//    - Tao UserController, inject UserService vao
-//    - Tat ca deu la singleton (mac dinh)
+// 2. Container tự động:
+//    - Quét package -> tìm các class có @Component/@Service/@Repository/@Controller
+//    - Tạo UserRepository
+//    - Tạo UserService, inject UserRepository vào
+//    - Tạo UserController, inject UserService vào
+//    - Tất cả đều là singleton (mặc định)
 ```
 
-## 2 loai Container
+## 2 loại Container
 
 ```
                   IoC Container
@@ -79,7 +79,7 @@ public class UserController {
           +------------+------------+
           |                         |
      BeanFactory            ApplicationContext
-     (co ban)               (nang cao - DUNG CAI NAY)
+     (cơ bản)               (nâng cao - DÙNG CÁI NÀY)
                                     |
                     +---------------+---------------+
                     |               |               |
@@ -87,8 +87,8 @@ public class UserController {
     ApplicationContext   ApplicationContext
 ```
 
-## Diem quan trong nho phong van
-1. IoC Container = **Nao** cua Spring (quan ly moi thu)
-2. Doc **metadata** -> **Tao** bean -> **Inject** dependency -> **Quan ly** lifecycle
-3. 2 loai: **BeanFactory** (co ban) va **ApplicationContext** (thuong dung)
-4. Spring Boot: `SpringApplication.run()` tao ApplicationContext tu dong
+## Điểm quan trọng nhớ phỏng vấn
+1. IoC Container = **Bộ não** của Spring (quản lý mọi thứ)
+2. Đọc **metadata** -> **Tạo** bean -> **Inject** dependency -> **Quản lý** lifecycle
+3. 2 loại: **BeanFactory** (cơ bản) và **ApplicationContext** (thường dùng)
+4. Spring Boot: `SpringApplication.run()` tạo ApplicationContext tự động

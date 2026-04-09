@@ -1,21 +1,21 @@
 # Q14: What is bean auto wiring?
 > **Dịch:** Bean Auto Wiring (tự động nối dây) là gì?
 
-## Tra loi ngan gon
-> **Autowiring** la co che Spring **tu dong inject dependency** vao bean ma khong can khai bao thu cong. Spring se tu tim bean phu hop dua tren **type**, **name**, hoac **constructor**.
+## Trả lời ngắn gọn
+> **Autowiring** là cơ chế Spring **tự động inject dependency** vào bean mà không cần khai báo thủ công. Spring sẽ tự tìm bean phù hợp dựa trên **type**, **name**, hoặc **constructor**.
 
-## Cach nho
+## Cách nhớ
 ```
-Khong autowiring = Tu cam sac dien thoai (phai tim o cam, cam day)
-Autowiring       = Sac khong day (dat len la tu sac)
+Không autowiring = Tự cắm sạc điện thoại (phải tìm ổ cắm, cắm dây)
+Autowiring       = Sạc không dây (đặt lên là tự sạc)
 ```
 
-## So sanh: Thu cong vs Autowiring
+## So sánh: Thủ công vs Autowiring
 
-### Thu cong (XML):
+### Thủ công (XML):
 ```xml
 <bean id="userService" class="com.example.UserService">
-    <property name="userRepo" ref="userRepository"/> <!-- Khai bao thu cong -->
+    <property name="userRepo" ref="userRepository"/> <!-- Khai báo thủ công -->
 </bean>
 ```
 
@@ -23,35 +23,35 @@ Autowiring       = Sac khong day (dat len la tu sac)
 ```java
 @Service
 public class UserService {
-    @Autowired  // Spring TU DONG tim va inject UserRepository
+    @Autowired  // Spring TỰ ĐỘNG tìm và inject UserRepository
     private UserRepository userRepo;
 }
 ```
 
-## 3 cach Autowiring bang Annotation
+## 3 cách Autowiring bằng Annotation
 
-### 1. Field Injection (nhanh nhung KHONG khuyen dung)
+### 1. Field Injection (nhanh nhưng KHÔNG khuyên dùng)
 ```java
 @Service
 public class UserService {
     @Autowired
-    private UserRepository userRepo; // Inject truc tiep vao field
+    private UserRepository userRepo; // Inject trực tiếp vào field
 }
-// Nhuoc: Khong test duoc, khong thay dependency ro rang
+// Nhược: Không test được, không thấy dependency rõ ràng
 ```
 
-### 2. Constructor Injection (KHUYEN DUNG)
+### 2. Constructor Injection (KHUYÊN DÙNG)
 ```java
 @Service
 public class UserService {
     private final UserRepository userRepo;
 
-    // @Autowired - co the bo neu chi co 1 constructor
+    // @Autowired - có thể bỏ nếu chỉ có 1 constructor
     public UserService(UserRepository userRepo) {
         this.userRepo = userRepo;
     }
 }
-// Uu: Final field, de test, dependency ro rang
+// Ưu: Final field, dễ test, dependency rõ ràng
 ```
 
 ### 3. Setter Injection
@@ -65,36 +65,36 @@ public class UserService {
         this.userRepo = userRepo;
     }
 }
-// Dung khi dependency la OPTIONAL
+// Dùng khi dependency là OPTIONAL
 ```
 
-## Xu ly khi co nhieu bean cung type
+## Xử lý khi có nhiều bean cùng type
 
 ```java
-// 2 bean cung implement UserRepository
+// 2 bean cùng implement UserRepository
 @Repository
 public class MySQLUserRepo implements UserRepository { }
 
 @Repository
 public class MongoUserRepo implements UserRepository { }
 
-// Cach 1: @Qualifier - chi dinh bean cu the
+// Cách 1: @Qualifier - chỉ định bean cụ thể
 @Autowired
 @Qualifier("mySQLUserRepo")
 private UserRepository userRepo;
 
-// Cach 2: @Primary - danh dau bean uu tien
+// Cách 2: @Primary - đánh dấu bean ưu tiên
 @Primary
 @Repository
 public class MySQLUserRepo implements UserRepository { }
 
-// Cach 3: Dat ten bien trung voi bean name
+// Cách 3: Đặt tên biến trùng với bean name
 @Autowired
-private UserRepository mySQLUserRepo; // Tim theo ten
+private UserRepository mySQLUserRepo; // Tìm theo tên
 ```
 
-## Diem quan trong nho phong van
-1. **Constructor injection** la best practice (final, testable)
-2. Neu chi co **1 constructor**, `@Autowired` co the **bo qua**
-3. Nhieu bean cung type -> dung `@Qualifier` hoac `@Primary`
-4. `@Autowired(required = false)` cho dependency **khong bat buoc**
+## Điểm quan trọng nhớ phỏng vấn
+1. **Constructor injection** là best practice (final, testable)
+2. Nếu chỉ có **1 constructor**, `@Autowired` có thể **bỏ qua**
+3. Nhiều bean cùng type -> dùng `@Qualifier` hoặc `@Primary`
+4. `@Autowired(required = false)` cho dependency **không bắt buộc**

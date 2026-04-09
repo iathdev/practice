@@ -1,15 +1,15 @@
 # Q22: What is the difference between Bean Factory and Application Context?
 > **Dịch:** Sự khác nhau giữa Bean Factory và Application Context là gì?
 
-## Tra loi ngan gon
-> (Cau nay tuong tu Q11) **BeanFactory** cung cap co che DI co ban voi lazy loading. **ApplicationContext** ke thua BeanFactory, them **event publishing, i18n, AOP, eager loading** va nhieu tinh nang enterprise khac.
+## Trả lời ngắn gọn
+> (Câu này tương tự Q11) **BeanFactory** cung cấp cơ chế DI cơ bản với lazy loading. **ApplicationContext** kế thừa BeanFactory, thêm **event publishing, i18n, AOP, eager loading** và nhiều tính năng enterprise khác.
 
-## Bang so sanh nhanh
+## Bảng so sánh nhanh
 
 ```
 BeanFactory                    ApplicationContext
 +-----------+                  +------------------+
-| DI co ban |                  | DI co ban        |
+| DI cơ bản |                  | DI cơ bản        |
 |           |                  | + Event system   |
 |           |                  | + i18n           |
 |           |                  | + AOP            |
@@ -17,10 +17,10 @@ BeanFactory                    ApplicationContext
 |           |                  | + Environment    |
 |           |                  | + Resource loader|
 +-----------+                  +------------------+
-   Xe dap                         Oto
+   Xe đạp                         Ôtô
 ```
 
-## Dac biet: Event System (chi co trong ApplicationContext)
+## Đặc biệt: Event System (chỉ có trong ApplicationContext)
 
 ```java
 // Publish event
@@ -45,10 +45,10 @@ public class WelcomeEmailListener {
 }
 ```
 
-## Khi nao dung BeanFactory?
-- Ung dung **rat nho**, can tiet kiem memory
+## Khi nào dùng BeanFactory?
+- Ứng dụng **rất nhỏ**, cần tiết kiệm memory
 - Embedded system, IoT
-- **Hau nhu khong bao gio** dung trong thuc te
+- **Hầu như không bao giờ** dùng trong thực tế
 
-## Ket luan
-> Luon dung **ApplicationContext**. Spring Boot mac dinh dung `AnnotationConfigServletWebServerApplicationContext`.
+## Kết luận
+> Luôn dùng **ApplicationContext**. Spring Boot mặc định dùng `AnnotationConfigServletWebServerApplicationContext`.

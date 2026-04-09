@@ -1,12 +1,12 @@
 # Q61: What are some of the valid return types of a controller method?
 > **Dịch:** Các kiểu trả về hợp lệ của method trong Controller là gì?
 
-## Tra loi ngan gon
-> Controller method co the tra ve nhieu kieu: **String** (view name), **ModelAndView**, **ResponseEntity**, **Object** (JSON), **void**, **Mono/Flux** (reactive), **DeferredResult** (async).
+## Trả lời ngắn gọn
+> Controller method có thể trả về nhiều kiểu: **String** (view name), **ModelAndView**, **ResponseEntity**, **Object** (JSON), **void**, **Mono/Flux** (reactive), **DeferredResult** (async).
 
-## Cac kieu tra ve
+## Các kiểu trả về
 
-### 1. String - Ten View
+### 1. String - Tên View
 ```java
 @Controller
 public class PageController {
@@ -31,7 +31,7 @@ public ModelAndView users() {
 }
 ```
 
-### 3. ResponseEntity<T> - HTTP Response day du (THUONG DUNG NHAT cho REST)
+### 3. ResponseEntity<T> - HTTP Response đầy đủ (THƯỜNG DÙNG NHẤT cho REST)
 ```java
 @GetMapping("/users/{id}")
 public ResponseEntity<User> getUser(@PathVariable Long id) {
@@ -42,7 +42,7 @@ public ResponseEntity<User> getUser(@PathVariable Long id) {
         .orElse(ResponseEntity.notFound().build());
 }
 
-// Cac cach tao ResponseEntity:
+// Các cách tạo ResponseEntity:
 ResponseEntity.ok(body);                    // 200
 ResponseEntity.created(uri).body(body);     // 201
 ResponseEntity.noContent().build();         // 204
@@ -51,7 +51,7 @@ ResponseEntity.notFound().build();          // 404
 ResponseEntity.status(HttpStatus.I_AM_A_TEAPOT).build(); // 418
 ```
 
-### 4. Object truc tiep - Tu dong serialize JSON
+### 4. Object trực tiếp - Tự động serialize JSON
 ```java
 @RestController
 public class ApiController {
@@ -67,12 +67,12 @@ public class ApiController {
 }
 ```
 
-### 5. void - Khong tra ve gi
+### 5. void - Không trả về gì
 ```java
 @DeleteMapping("/users/{id}")
 @ResponseStatus(HttpStatus.NO_CONTENT) // 204
 public void deleteUser(@PathVariable Long id) {
-    userService.delete(id); // Khong can tra ve gi
+    userService.delete(id); // Không cần trả về gì
 }
 ```
 
@@ -94,35 +94,35 @@ public Flux<User> getUsers() {
 @GetMapping("/async")
 public DeferredResult<String> async() {
     DeferredResult<String> result = new DeferredResult<>();
-    // Xu ly tren thread khac
+    // Xử lý trên thread khác
     executorService.submit(() -> {
         result.setResult("Done!");
     });
-    return result; // Giai phong request thread ngay
+    return result; // Giải phóng request thread ngay
 }
 
 @GetMapping("/callable")
 public Callable<String> callable() {
     return () -> {
         Thread.sleep(1000);
-        return "Done!"; // Chay tren thread rieng
+        return "Done!"; // Chạy trên thread riêng
     };
 }
 ```
 
-## Bang tom tat
+## Bảng tóm tắt
 
-| Return type | Dung khi | Controller type |
+| Return type | Dùng khi | Controller type |
 |------------|---------|:---:|
-| String | Tra ve view name | @Controller |
+| String | Trả về view name | @Controller |
 | ModelAndView | View + data | @Controller |
 | ResponseEntity<T> | Full control HTTP response | @RestController |
 | Object (T) | Auto JSON | @RestController |
-| void | Khong tra ve (DELETE) | Ca hai |
+| void | Không trả về (DELETE) | Cả hai |
 | Mono<T> / Flux<T> | Reactive | WebFlux |
 
-## Diem quan trong nho phong van
-1. **ResponseEntity** la linh hoat nhat (control status, headers, body)
-2. `@RestController` + Object -> tu dong **JSON** qua Jackson
-3. **void** + `@ResponseStatus` cho DELETE/PUT khong can body
+## Điểm quan trọng nhớ phỏng vấn
+1. **ResponseEntity** là linh hoạt nhất (control status, headers, body)
+2. `@RestController` + Object -> tự động **JSON** qua Jackson
+3. **void** + `@ResponseStatus` cho DELETE/PUT không cần body
 4. **DeferredResult** cho long-polling / async processing

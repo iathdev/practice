@@ -1,43 +1,43 @@
 # Q32: Compare @Component (v2.5) versus @Bean (v3.0)
 > **Dịch:** So sánh @Component (v2.5) và @Bean (v3.0)
 
-## Tra loi ngan gon
-> `@Component` danh dau tren **class** (tu dong scan). `@Bean` danh dau tren **method** trong @Configuration class (khai bao thu cong). Dung `@Component` cho class ban viet, `@Bean` cho class thu vien ben ngoai.
+## Trả lời ngắn gọn
+> `@Component` đánh dấu trên **class** (tự động scan). `@Bean` đánh dấu trên **method** trong @Configuration class (khai báo thủ công). Dùng `@Component` cho class bạn viết, `@Bean` cho class thư viện bên ngoài.
 
-## Cach nho
+## Cách nhớ
 ```
-@Component = Tuyen nhan vien TRUC TIEP (den nha no danh dau)
-@Bean      = Tuyen qua TRUNG GIAN (nho HR tao profile)
+@Component = Tuyển nhân viên TRỰC TIẾP (đến nhà nó đánh dấu)
+@Bean      = Tuyển qua TRUNG GIAN (nhờ HR tạo profile)
 ```
 
-## So sanh chi tiet
+## So sánh chi tiết
 
 | | @Component | @Bean |
 |--|:---:|:---:|
-| Dat o dau | **Class** level | **Method** level |
-| Cach tao bean | Auto scan | Thu cong trong @Configuration |
-| Dung cho | Class BAN viet | Class **thu vien** (khong sua duoc source) |
-| Ten bean | Ten class (camelCase) | Ten method |
-| Customize tao | Han che | **Linh hoat** (logic trong method) |
+| Đặt ở đâu | **Class** level | **Method** level |
+| Cách tạo bean | Auto scan | Thủ công trong @Configuration |
+| Dùng cho | Class BẠN viết | Class **thư viện** (không sửa được source) |
+| Tên bean | Tên class (camelCase) | Tên method |
+| Customize tạo | Hạn chế | **Linh hoạt** (logic trong method) |
 
-## Vi du
+## Ví dụ
 
-### @Component - cho class ban viet
+### @Component - cho class bạn viết
 ```java
-@Component  // Spring tu dong phat hien va tao bean
+@Component  // Spring tự động phát hiện và tạo bean
 public class EmailService {
     public void send(String to, String body) {
-        // logic gui email
+        // logic gửi email
     }
 }
 ```
 
-### @Bean - cho class ben ngoai (khong sua duoc source)
+### @Bean - cho class bên ngoài (không sửa được source)
 ```java
 @Configuration
 public class AppConfig {
 
-    @Bean  // Ban KHONG the them @Component vao ObjectMapper vi no la class cua Jackson
+    @Bean  // Bạn KHÔNG thể thêm @Component vào ObjectMapper vì nó là class của Jackson
     public ObjectMapper objectMapper() {
         return new ObjectMapper()
             .registerModule(new JavaTimeModule())
@@ -51,7 +51,7 @@ public class AppConfig {
             .build();
     }
 
-    // Co the co logic phuc tap khi tao bean
+    // Có thể có logic phức tạp khi tạo bean
     @Bean
     @Profile("prod")
     public DataSource dataSource() {
@@ -63,19 +63,19 @@ public class AppConfig {
 }
 ```
 
-### Khi nao dung @Bean bat buoc?
+### Khi nào dùng @Bean bắt buộc?
 ```java
-// 1. Class tu thu vien (khong sua duoc source)
+// 1. Class từ thư viện (không sửa được source)
 @Bean
 public ObjectMapper objectMapper() { return new ObjectMapper(); }
 
-// 2. Can logic phuc tap khi tao
+// 2. Cần logic phức tạp khi tạo
 @Bean
 public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     return http.csrf().disable().build();
 }
 
-// 3. Can nhieu bean cung type
+// 3. Cần nhiều bean cùng type
 @Bean("mysqlDS")
 public DataSource mysqlDataSource() { /* ... */ }
 
@@ -83,8 +83,8 @@ public DataSource mysqlDataSource() { /* ... */ }
 public DataSource postgresDataSource() { /* ... */ }
 ```
 
-## Diem quan trong nho phong van
-1. `@Component` = **class level**, auto scan | `@Bean` = **method level**, thu cong
-2. Dung `@Bean` khi **khong the** them annotation vao class (thu vien)
-3. `@Bean` cho phep **logic phuc tap** khi tao bean
-4. `@Component` ket hop component scanning, `@Bean` ket hop `@Configuration`
+## Điểm quan trọng nhớ phỏng vấn
+1. `@Component` = **class level**, auto scan | `@Bean` = **method level**, thủ công
+2. Dùng `@Bean` khi **không thể** thêm annotation vào class (thư viện)
+3. `@Bean` cho phép **logic phức tạp** khi tạo bean
+4. `@Component` kết hợp component scanning, `@Bean` kết hợp `@Configuration`

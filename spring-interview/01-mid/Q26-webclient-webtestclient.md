@@ -1,32 +1,32 @@
 # Q26: What is the use of WebClient and WebTestClient?
 > **Dịch:** WebClient và WebTestClient dùng để làm gì?
 
-## Tra loi ngan gon
-> **WebClient** la HTTP client **non-blocking** (reactive) thay the RestTemplate. **WebTestClient** la phien ban test cua WebClient, dung de test reactive web endpoints ma khong can server that.
+## Trả lời ngắn gọn
+> **WebClient** là HTTP client **non-blocking** (reactive) thay thế RestTemplate. **WebTestClient** là phiên bản test của WebClient, dùng để test reactive web endpoints mà không cần server thật.
 
-## Cach nho
+## Cách nhớ
 ```
-RestTemplate = Goi dien thoai (doi cho den khi co ket qua)
-WebClient    = Gui tin nhan  (gui xong lam viec khac, bao khi co tra loi)
-WebTestClient = Gui tin nhan thu (test khong can mang that)
+RestTemplate = Gọi điện thoại (đợi cho đến khi có kết quả)
+WebClient    = Gửi tin nhắn  (gửi xong làm việc khác, báo khi có trả lời)
+WebTestClient = Gửi tin nhắn thử (test không cần mạng thật)
 ```
 
 ## WebClient - HTTP Client
 
 ```java
-// Tao WebClient
+// Tạo WebClient
 WebClient client = WebClient.builder()
     .baseUrl("https://api.example.com")
     .defaultHeader("Authorization", "Bearer xxx")
     .build();
 
-// GET request - tra ve Mono (1 ket qua)
+// GET request - trả về Mono (1 kết quả)
 Mono<User> user = client.get()
     .uri("/users/{id}", 1)
     .retrieve()
     .bodyToMono(User.class);
 
-// GET request - tra ve Flux (nhieu ket qua)
+// GET request - trả về Flux (nhiều kết quả)
 Flux<User> users = client.get()
     .uri("/users")
     .retrieve()
@@ -39,12 +39,12 @@ Mono<User> created = client.post()
     .retrieve()
     .bodyToMono(User.class);
 
-// Blocking (doi ket qua - khi can)
+// Blocking (đợi kết quả - khi cần)
 User result = client.get()
     .uri("/users/1")
     .retrieve()
     .bodyToMono(User.class)
-    .block(); // Cho ket qua (dung trong non-reactive code)
+    .block(); // Chờ kết quả (dùng trong non-reactive code)
 ```
 
 ## WebTestClient - Test
@@ -81,18 +81,18 @@ class UserControllerTest {
 }
 ```
 
-## So sanh RestTemplate vs WebClient
+## So sánh RestTemplate vs WebClient
 
 | | RestTemplate | WebClient |
 |--|:---:|:---:|
-| Blocking | Co (mac dinh) | Khong (non-blocking) |
-| Reactive | Khong | Co |
-| Performance | Thap hon | Cao hon |
-| Tuong lai | **Deprecated** | Khuyen dung |
-| Spring 5+ | Van dung duoc | Moi va tot hon |
+| Blocking | Có (mặc định) | Không (non-blocking) |
+| Reactive | Không | Có |
+| Performance | Thấp hơn | Cao hơn |
+| Tương lai | **Deprecated** | Khuyên dùng |
+| Spring 5+ | Vẫn dùng được | Mới và tốt hơn |
 
-## Diem quan trong nho phong van
-1. **WebClient** thay the **RestTemplate** (deprecated)
-2. WebClient la **non-blocking**, dung `Mono`/`Flux`
-3. **WebTestClient** test web endpoints khong can server that
-4. Co the dung `.block()` de chuyen ve blocking khi can
+## Điểm quan trọng nhớ phỏng vấn
+1. **WebClient** thay thế **RestTemplate** (deprecated)
+2. WebClient là **non-blocking**, dùng `Mono`/`Flux`
+3. **WebTestClient** test web endpoints không cần server thật
+4. Có thể dùng `.block()` để chuyển về blocking khi cần

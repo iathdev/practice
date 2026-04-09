@@ -1,33 +1,33 @@
 # Q40: What are some benefits of using Spring Transactions?
 > **Dịch:** Lợi ích của việc sử dụng Spring Transaction là gì?
 
-## Tra loi ngan gon
-> Spring Transaction mang lai: **API thong nhat** cho nhieu loai transaction (JDBC, JPA, JMS), **declarative** (@Transactional don gian), **tich hop AOP**, **ho tro programmatic** khi can, va **khong phu thuoc** vao server.
+## Trả lời ngắn gọn
+> Spring Transaction mang lại: **API thống nhất** cho nhiều loại transaction (JDBC, JPA, JMS), **declarative** (@Transactional đơn giản), **tích hợp AOP**, **hỗ trợ programmatic** khi cần, và **không phụ thuộc** vào server.
 
-## Cach nho
+## Cách nhớ
 ```
-Spring Transaction = "Remote dieu khien" cho database
-- 1 nut bam (@Transactional) thay vi 100 dong code
-- Dung cho nhieu loai TV (JDBC, JPA, JMS)
-- Khong can doi TV moi mua remote moi
+Spring Transaction = "Remote điều khiển" cho database
+- 1 nút bấm (@Transactional) thay vì 100 dòng code
+- Dùng cho nhiều loại TV (JDBC, JPA, JMS)
+- Không cần đổi TV mới mua remote mới
 ```
 
-## Cac loi ich cu the
+## Các lợi ích cụ thể
 
-### 1. API thong nhat (Consistent Programming Model)
+### 1. API thống nhất (Consistent Programming Model)
 ```java
-// Cung @Transactional, bat ke dung JDBC, JPA, hay Hibernate
+// Cùng @Transactional, bất kể dùng JDBC, JPA, hay Hibernate
 @Transactional
 public void transferMoney(Long from, Long to, BigDecimal amount) {
-    accountRepo.debit(from, amount);   // Co the dung JDBC
-    accountRepo.credit(to, amount);    // Hoac JPA - KHONG can doi code
+    accountRepo.debit(from, amount);   // Có thể dùng JDBC
+    accountRepo.credit(to, amount);    // Hoặc JPA - KHÔNG cần đổi code
 }
-// Doi tu JDBC sang JPA? Chi can doi Repository, KHONG doi @Transactional
+// Đổi từ JDBC sang JPA? Chỉ cần đổi Repository, KHÔNG đổi @Transactional
 ```
 
-### 2. Declarative (Don gian)
+### 2. Declarative (Đơn giản)
 ```java
-// KHONG co Spring: 15+ dong code
+// KHÔNG có Spring: 15+ dòng code
 Connection conn = dataSource.getConnection();
 try {
     conn.setAutoCommit(false);
@@ -39,29 +39,29 @@ try {
     conn.close();
 }
 
-// CO Spring: 1 annotation
+// CÓ Spring: 1 annotation
 @Transactional
 public void businessLogic() {
-    // chi can viet logic, Spring lo phan con lai
+    // chỉ cần viết logic, Spring lo phần còn lại
 }
 ```
 
-### 3. Ho tro Propagation (lan truyen)
+### 3. Hỗ trợ Propagation (lan truyền)
 ```java
 @Transactional
 public void processOrder(Order order) {
     orderRepo.save(order);
-    paymentService.charge(order);    // REQUIRED: dung chung transaction
-    auditService.log(order);         // REQUIRES_NEW: transaction rieng
+    paymentService.charge(order);    // REQUIRED: dùng chung transaction
+    auditService.log(order);         // REQUIRES_NEW: transaction riêng
 }
 ```
 
-### 4. Rollback tu dong
+### 4. Rollback tự động
 ```java
 @Transactional(rollbackFor = Exception.class)
 public void transfer(Long from, Long to, BigDecimal amount) {
-    accountRepo.debit(from, amount);   // Thanh cong
-    accountRepo.credit(to, amount);    // THAT BAI -> Rollback debit luon!
+    accountRepo.debit(from, amount);   // Thành công
+    accountRepo.credit(to, amount);    // THẤT BẠI -> Rollback debit luôn!
 }
 ```
 
@@ -73,9 +73,9 @@ public List<User> findAll() {
 }
 ```
 
-## Diem quan trong nho phong van
-1. **API thong nhat** - JDBC, JPA, JMS deu dung `@Transactional`
-2. **Declarative** - don gian, khong can code thu cong
-3. **Propagation** - kiem soat transaction cha/con
-4. **Rollback** tu dong khi co RuntimeException
-5. `readOnly = true` **tang performance** cho read operations
+## Điểm quan trọng nhớ phỏng vấn
+1. **API thống nhất** - JDBC, JPA, JMS đều dùng `@Transactional`
+2. **Declarative** - đơn giản, không cần code thủ công
+3. **Propagation** - kiểm soát transaction cha/con
+4. **Rollback** tự động khi có RuntimeException
+5. `readOnly = true` **tăng performance** cho read operations

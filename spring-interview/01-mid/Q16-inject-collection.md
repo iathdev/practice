@@ -1,49 +1,49 @@
 # Q16: How can you inject Java Collection in Spring?
 > **Dịch:** Làm thế nào để inject Java Collection trong Spring?
 
-## Tra loi ngan gon
-> Spring ho tro inject **List, Set, Map, Properties** qua XML config hoac annotation. Voi annotation, Spring tu dong inject **tat ca bean cung type** vao List/Set, hoac dung `@Value` de inject tu properties file.
+## Trả lời ngắn gọn
+> Spring hỗ trợ inject **List, Set, Map, Properties** qua XML config hoặc annotation. Với annotation, Spring tự động inject **tất cả bean cùng type** vào List/Set, hoặc dùng `@Value` để inject từ properties file.
 
-## Cach nho
+## Cách nhớ
 ```
-Inject Collection = Bo tat ca dao cu cung loai vao 1 hop
-List = Hop co thu tu
-Set  = Hop khong trung lap
-Map  = Hop co nhan ten
+Inject Collection = Bỏ tất cả đạo cụ cùng loại vào 1 hộp
+List = Hộp có thứ tự
+Set  = Hộp không trùng lặp
+Map  = Hộp có nhãn tên
 ```
 
-## Cach 1: Inject tat ca bean cung type vao List
+## Cách 1: Inject tất cả bean cùng type vào List
 
 ```java
-// Nhieu bean implement cung 1 interface
+// Nhiều bean implement cùng 1 interface
 @Component
 public class EmailNotifier implements Notifier {
-    public void send(String msg) { /* gui email */ }
+    public void send(String msg) { /* gửi email */ }
 }
 
 @Component
 public class SmsNotifier implements Notifier {
-    public void send(String msg) { /* gui SMS */ }
+    public void send(String msg) { /* gửi SMS */ }
 }
 
 @Component
 public class SlackNotifier implements Notifier {
-    public void send(String msg) { /* gui Slack */ }
+    public void send(String msg) { /* gửi Slack */ }
 }
 
-// Inject TAT CA vao List
+// Inject TẤT CẢ vào List
 @Service
 public class NotificationService {
     @Autowired
     private List<Notifier> notifiers; // [EmailNotifier, SmsNotifier, SlackNotifier]
 
     public void notifyAll(String msg) {
-        notifiers.forEach(n -> n.send(msg)); // Gui het!
+        notifiers.forEach(n -> n.send(msg)); // Gửi hết!
     }
 }
 ```
 
-## Cach 2: Inject voi @Value tu properties
+## Cách 2: Inject với @Value từ properties
 
 ```yaml
 # application.yml
@@ -57,20 +57,20 @@ app:
 ```java
 @Component
 public class AppConfig {
-    // Inject List tu comma-separated string
+    // Inject List từ comma-separated string
     @Value("${app.allowed-origins}")
     private List<String> allowedOrigins;
 
-    // Inject List tu YAML list
+    // Inject List từ YAML list
     @Value("${app.admin-emails}")
     private List<String> adminEmails;
 }
 ```
 
-## Cach 3: Inject Map
+## Cách 3: Inject Map
 
 ```java
-// Map<String, Bean> - key la bean name, value la bean instance
+// Map<String, Bean> - key là bean name, value là bean instance
 @Service
 public class PaymentService {
     @Autowired
@@ -84,15 +84,15 @@ public class PaymentService {
 }
 ```
 
-## Cach 4: Sap xep thu tu voi @Order
+## Cách 4: Sắp xếp thứ tự với @Order
 
 ```java
 @Component
-@Order(1)  // Thu tu 1 (dau tien)
+@Order(1)  // Thứ tự 1 (đầu tiên)
 public class SecurityFilter implements Filter { }
 
 @Component
-@Order(2)  // Thu tu 2
+@Order(2)  // Thứ tự 2
 public class LoggingFilter implements Filter { }
 
 @Service
@@ -102,7 +102,7 @@ public class FilterChain {
 }
 ```
 
-## Cach 5: XML config (cu nhung van gap)
+## Cách 5: XML config (cũ nhưng vẫn gặp)
 
 ```xml
 <bean id="myBean" class="com.example.MyBean">
@@ -121,8 +121,8 @@ public class FilterChain {
 </bean>
 ```
 
-## Diem quan trong nho phong van
-1. Inject `List<SomeInterface>` -> Spring inject **tat ca** bean implement interface do
+## Điểm quan trọng nhớ phỏng vấn
+1. Inject `List<SomeInterface>` -> Spring inject **tất cả** bean implement interface đó
 2. Inject `Map<String, SomeInterface>` -> key = **bean name**, value = bean instance
-3. Dung **@Order** hoac **@Priority** de sap xep thu tu trong List
-4. `@Value` co the inject List tu **properties file**
+3. Dùng **@Order** hoặc **@Priority** để sắp xếp thứ tự trong List
+4. `@Value` có thể inject List từ **properties file**

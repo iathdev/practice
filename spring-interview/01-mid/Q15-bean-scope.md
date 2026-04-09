@@ -1,33 +1,33 @@
 # Q15: How do you define a bean scope?
 > **Dịch:** Làm thế nào để định nghĩa Bean Scope?
 
-## Tra loi ngan gon
-> Bean scope dinh nghia **vong doi** va **so luong instance** cua bean. Khai bao bang `@Scope` annotation hoac trong XML config.
+## Trả lời ngắn gọn
+> Bean scope định nghĩa **vòng đời** và **số lượng instance** của bean. Khai báo bằng `@Scope` annotation hoặc trong XML config.
 
-## Cach nho
+## Cách nhớ
 ```
-Singleton  = 1 chiec xe bus (tat ca di chung 1 chiec)
-Prototype  = Taxi (moi nguoi 1 chiec rieng)
-Request    = Ly nuoc (moi khach 1 ly moi)
-Session    = Ban an (1 nhom khach dung chung 1 ban)
+Singleton  = 1 chiếc xe bus (tất cả đi chung 1 chiếc)
+Prototype  = Taxi (mỗi người 1 chiếc riêng)
+Request    = Ly nước (mỗi khách 1 ly mới)
+Session    = Bàn ăn (1 nhóm khách dùng chung 1 bàn)
 ```
 
-## Cac loai scope
+## Các loại scope
 
-| Scope | So instance | Khi nao tao | Dung khi |
+| Scope | Số instance | Khi nào tạo | Dùng khi |
 |-------|-------------|-------------|----------|
-| **singleton** | 1 duy nhat | Khi container khoi dong | Stateless bean (mac dinh) |
-| **prototype** | Moi lan 1 cai moi | Moi khi getBean() | Stateful bean |
-| **request** | 1 / HTTP request | Moi request | Web - data theo request |
-| **session** | 1 / HTTP session | Moi session | Web - data theo user session |
-| **application** | 1 / ServletContext | Khi app khoi dong | Web - data chia se |
-| **websocket** | 1 / WebSocket | Moi WS connection | WebSocket |
+| **singleton** | 1 duy nhất | Khi container khởi động | Stateless bean (mặc định) |
+| **prototype** | Mỗi lần 1 cái mới | Mỗi khi getBean() | Stateful bean |
+| **request** | 1 / HTTP request | Mỗi request | Web - data theo request |
+| **session** | 1 / HTTP session | Mỗi session | Web - data theo user session |
+| **application** | 1 / ServletContext | Khi app khởi động | Web - data chia sẻ |
+| **websocket** | 1 / WebSocket | Mỗi WS connection | WebSocket |
 
-## Cach khai bao
+## Cách khai báo
 
 ### Annotation:
 ```java
-// Singleton (mac dinh - khong can khai bao)
+// Singleton (mặc định - không cần khai báo)
 @Service
 public class UserService { }
 
@@ -36,7 +36,7 @@ public class UserService { }
 @Scope("prototype")
 public class ShoppingCart { }
 
-// Dung constant (an toan hon)
+// Dùng constant (an toàn hơn)
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ShoppingCart { }
@@ -65,58 +65,58 @@ public class AppConfig {
 }
 ```
 
-## Vi du minh hoa
+## Ví dụ minh họa
 
 ```java
-// SINGLETON - cung 1 instance
-@Service // singleton mac dinh
+// SINGLETON - cùng 1 instance
+@Service // singleton mặc định
 public class UserService { }
 
 UserService a = ctx.getBean(UserService.class);
 UserService b = ctx.getBean(UserService.class);
-System.out.println(a == b); // TRUE - cung 1 object
+System.out.println(a == b); // TRUE - cùng 1 object
 
-// PROTOTYPE - moi lan 1 instance moi
+// PROTOTYPE - mỗi lần 1 instance mới
 @Component
 @Scope("prototype")
 public class ShoppingCart { }
 
 ShoppingCart a = ctx.getBean(ShoppingCart.class);
 ShoppingCart b = ctx.getBean(ShoppingCart.class);
-System.out.println(a == b); // FALSE - khac object
+System.out.println(a == b); // FALSE - khác object
 ```
 
-## Luu y: Singleton inject Prototype
+## Lưu ý: Singleton inject Prototype
 
 ```java
-// VAN DE: Prototype bean trong Singleton se KHONG tao moi!
+// VẤN ĐỀ: Prototype bean trong Singleton sẽ KHÔNG tạo mới!
 @Service // Singleton
 public class OrderService {
     @Autowired
-    private ShoppingCart cart; // Prototype - nhung chi inject 1 lan!
+    private ShoppingCart cart; // Prototype - nhưng chỉ inject 1 lần!
 }
 
-// GIAI PHAP: Dung @Lookup hoac ObjectFactory
+// GIẢI PHÁP: Dùng @Lookup hoặc ObjectFactory
 @Service
 public class OrderService {
     @Lookup
-    public ShoppingCart getCart() { return null; } // Spring override method nay
+    public ShoppingCart getCart() { return null; } // Spring override method này
 }
 
-// Hoac dung ObjectFactory / Provider
+// Hoặc dùng ObjectFactory / Provider
 @Service
 public class OrderService {
     @Autowired
     private ObjectFactory<ShoppingCart> cartFactory;
 
     public void process() {
-        ShoppingCart cart = cartFactory.getObject(); // Moi lan 1 cart moi
+        ShoppingCart cart = cartFactory.getObject(); // Mỗi lần 1 cart mới
     }
 }
 ```
 
-## Diem quan trong nho phong van
-1. Mac dinh la **singleton** (1 instance duy nhat)
-2. **request, session** chi dung trong **web application**
-3. Prototype bean trong Singleton -> dung **@Lookup** hoac **ObjectFactory**
-4. Singleton bean **khong nen** chua state (vi chia se giua cac thread)
+## Điểm quan trọng nhớ phỏng vấn
+1. Mặc định là **singleton** (1 instance duy nhất)
+2. **request, session** chỉ dùng trong **web application**
+3. Prototype bean trong Singleton -> dùng **@Lookup** hoặc **ObjectFactory**
+4. Singleton bean **không nên** chứa state (vì chia sẻ giữa các thread)

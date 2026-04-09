@@ -14,49 +14,49 @@
 
 ## Q48: Default Scope in Web Context
 
-### Tra loi ngan gon
-> Mac dinh van la **singleton** - ca trong web context lan non-web context. Nhung web context co them cac scope: **request, session, application, websocket**.
+### Trả lời ngắn gọn
+> Mặc định vẫn là **singleton** - cả trong web context lẫn non-web context. Nhưng web context có thêm các scope: **request, session, application, websocket**.
 
 ---
 
 ## Q49: Limitations of Autowiring
 
-### Tra loi ngan gon
-> Autowiring co nhieu han che can luu y.
+### Trả lời ngắn gọn
+> Autowiring có nhiều hạn chế cần lưu ý.
 
 ```
-1. AMBIGUITY (Nhap nhang)
-   - Nhieu bean cung type -> NoUniqueBeanDefinitionException
-   - Giai phap: @Qualifier, @Primary
+1. AMBIGUITY (Nhập nhằng)
+   - Nhiều bean cùng type -> NoUniqueBeanDefinitionException
+   - Giải pháp: @Qualifier, @Primary
 
-2. KHONG OVERRIDE duoc
-   - Autowiring khong cho phep set gia tri primitive (String, int)
-   - Phai dung @Value
+2. KHÔNG OVERRIDE được
+   - Autowiring không cho phép set giá trị primitive (String, int)
+   - Phải dùng @Value
 
-3. KHO DEBUG
-   - Dependency khong ro rang (dac biet field injection)
-   - Kho biet bean nao duoc inject
+3. KHÓ DEBUG
+   - Dependency không rõ ràng (đặc biệt field injection)
+   - Khó biết bean nào được inject
 
-4. KHONG DUNG CHO SIMPLE TYPES
-   - Khong autowire duoc String, int, boolean
-   - Chi autowire duoc bean
+4. KHÔNG DÙNG CHO SIMPLE TYPES
+   - Không autowire được String, int, boolean
+   - Chỉ autowire được bean
 
 5. DOCUMENTATION
-   - Khong co tai lieu nao chi ra dependency (voi field injection)
-   - Constructor injection ro rang hon
+   - Không có tài liệu nào chỉ ra dependency (với field injection)
+   - Constructor injection rõ ràng hơn
 
-Vi du van de:
+Ví dụ vấn đề:
 @Service
 public class PaymentService {
     @Autowired
-    private PaymentGateway gateway; // Gateway nao? Stripe? PayPal? Khong biet!
+    private PaymentGateway gateway; // Gateway nào? Stripe? PayPal? Không biết!
 }
 
 // Fix:
 @Service
 public class PaymentService {
     @Autowired
-    @Qualifier("stripeGateway") // Ro rang!
+    @Qualifier("stripeGateway") // Rõ ràng!
     private PaymentGateway gateway;
 }
 ```
@@ -65,32 +65,32 @@ public class PaymentService {
 
 ## Q50: Autowiring Modes
 
-### Tra loi ngan gon (XML modes)
+### Trả lời ngắn gọn (XML modes)
 
-| Mode | Mo ta |
+| Mode | Mô tả |
 |------|-------|
-| **no** | Khong autowire (mac dinh XML) |
-| **byName** | Tim bean co ID trung voi ten property |
-| **byType** | Tim bean co TYPE trung voi kieu property |
-| **constructor** | Nhu byType nhung qua constructor |
-| **autodetect** | Thu constructor, roi byType (bo tu Spring 4) |
+| **no** | Không autowire (mặc định XML) |
+| **byName** | Tìm bean có ID trùng với tên property |
+| **byType** | Tìm bean có TYPE trùng với kiểu property |
+| **constructor** | Như byType nhưng qua constructor |
+| **autodetect** | Thử constructor, rồi byType (bỏ từ Spring 4) |
 
 ```
-Trong annotation-based (thuc te):
-@Autowired mac dinh la byType
-Neu nhieu bean cung type -> dung @Qualifier (byName)
+Trong annotation-based (thực tế):
+@Autowired mặc định là byType
+Nếu nhiều bean cùng type -> dùng @Qualifier (byName)
 ```
 
 ---
 
 ## Q51: Bean Scopes
 
-### Bang tong hop tat ca scope
+### Bảng tổng hợp tất cả scope
 
-| Scope | Mo ta | Vi du |
+| Scope | Mô tả | Ví dụ |
 |-------|-------|-------|
-| **singleton** | 1 instance / container (MAC DINH) | Service, Repository |
-| **prototype** | Instance moi moi lan getBean() | Stateful objects |
+| **singleton** | 1 instance / container (MẶC ĐỊNH) | Service, Repository |
+| **prototype** | Instance mới mỗi lần getBean() | Stateful objects |
 | **request** | 1 instance / HTTP request | Request data |
 | **session** | 1 instance / HTTP session | Shopping cart |
 | **application** | 1 instance / ServletContext | Shared config |
@@ -98,7 +98,7 @@ Neu nhieu bean cung type -> dung @Qualifier (byName)
 
 ```java
 @Component
-@Scope("singleton")     // Mac dinh, khong can ghi
+@Scope("singleton")     // Mặc định, không cần ghi
 public class SingletonBean { }
 
 @Component
@@ -114,8 +114,8 @@ public class RequestBean { }
 public class SessionBean { }
 ```
 
-## Diem quan trong nho phong van
-1. Default scope = **singleton** (ke ca web context)
-2. Autowiring han che: **ambiguity, khong primitive, kho debug**
-3. Annotation-based autowiring mac dinh **byType**
-4. Web scopes (request/session) can **web application context**
+## Điểm quan trọng nhớ phỏng vấn
+1. Default scope = **singleton** (kể cả web context)
+2. Autowiring hạn chế: **ambiguity, không primitive, khó debug**
+3. Annotation-based autowiring mặc định **byType**
+4. Web scopes (request/session) cần **web application context**

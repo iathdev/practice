@@ -1,76 +1,76 @@
 # Q57: Explain the difference between annotation-config vs component-scan
 > **Dịch:** Giải thích sự khác nhau giữa annotation-config và component-scan
 
-## Tra loi ngan gon
-> `<context:annotation-config>` chi **kich hoat** cac annotation (@Autowired, @PostConstruct...) cho bean DA DANG KY. `<context:component-scan>` lam tat ca nhung gi annotation-config lam CONG THEM **tu dong scan** va **dang ky** bean moi tu package.
+## Trả lời ngắn gọn
+> `<context:annotation-config>` chỉ **kích hoạt** các annotation (@Autowired, @PostConstruct...) cho bean ĐÃ ĐĂNG KÝ. `<context:component-scan>` làm tất cả những gì annotation-config làm CỘNG THÊM **tự động scan** và **đăng ký** bean mới từ package.
 
-## Cach nho
+## Cách nhớ
 ```
-annotation-config = Bat dien trong nha (nha DA xay xong)
-component-scan    = Xay nha + Bat dien (xay xong tu bat)
+annotation-config = Bật điện trong nhà (nhà ĐÃ xây xong)
+component-scan    = Xây nhà + Bật điện (xây xong tự bật)
 ```
 
-## So sanh
+## So sánh
 
 | | annotation-config | component-scan |
 |--|:---:|:---:|
-| Kich hoat annotations | Co | Co |
-| Tu dong tim bean moi | **KHONG** | **CO** |
-| Scan package | Khong | Co |
-| Bao gom annotation-config | Khong | **Co** (tu dong) |
+| Kích hoạt annotations | Có | Có |
+| Tự động tìm bean mới | **KHÔNG** | **CÓ** |
+| Scan package | Không | Có |
+| Bao gồm annotation-config | Không | **Có** (tự động) |
 
-## Vi du
+## Ví dụ
 
-### annotation-config: chi kich hoat annotation
+### annotation-config: chỉ kích hoạt annotation
 ```xml
-<!-- Bean phai DANG KY THU CONG -->
+<!-- Bean phải ĐĂNG KÝ THỦ CÔNG -->
 <bean id="userRepo" class="com.example.UserRepository"/>
 <bean id="userService" class="com.example.UserService"/>
 
-<!-- Chi kich hoat @Autowired, @PostConstruct... cho cac bean tren -->
+<!-- Chỉ kích hoạt @Autowired, @PostConstruct... cho các bean trên -->
 <context:annotation-config/>
 ```
 
 ```java
-// @Autowired HOAT DONG vi da bat annotation-config
-// Nhung bean van phai dang ky trong XML
-@Service  // KHONG TU DONG tao bean! (chi co annotation-config)
+// @Autowired HOẠT ĐỘNG vì đã bật annotation-config
+// Nhưng bean vẫn phải đăng ký trong XML
+@Service  // KHÔNG TỰ ĐỘNG tạo bean! (chỉ có annotation-config)
 public class UserService {
-    @Autowired  // Hoat dong!
+    @Autowired  // Hoạt động!
     private UserRepository userRepo;
 }
 ```
 
-### component-scan: scan + kich hoat (THUONG DUNG)
+### component-scan: scan + kích hoạt (THƯỜNG DÙNG)
 ```xml
-<!-- Tu dong scan package, tim @Component/@Service/@Repository/@Controller -->
-<!-- DONG THOI kich hoat annotations (bao gom annotation-config) -->
+<!-- Tự động scan package, tìm @Component/@Service/@Repository/@Controller -->
+<!-- ĐỒNG THỜI kích hoạt annotations (bao gồm annotation-config) -->
 <context:component-scan base-package="com.example"/>
 
-<!-- KHONG can dang ky bean thu cong nua! -->
+<!-- KHÔNG cần đăng ký bean thủ công nữa! -->
 ```
 
 ```java
-@Service  // TU DONG duoc scan va dang ky thanh bean!
+@Service  // TỰ ĐỘNG được scan và đăng ký thành bean!
 public class UserService {
-    @Autowired  // Hoat dong!
+    @Autowired  // Hoạt động!
     private UserRepository userRepo;
 }
 ```
 
-### Trong Spring Boot (hien dai)
+### Trong Spring Boot (hiện đại)
 ```java
-@SpringBootApplication  // DA BAO GOM component-scan cho package hien tai
+@SpringBootApplication  // ĐÃ BAO GỒM component-scan cho package hiện tại
 public class MyApp {
     public static void main(String[] args) {
         SpringApplication.run(MyApp.class, args);
     }
 }
-// Khong can XML nao ca!
+// Không cần XML nào cả!
 ```
 
-## Diem quan trong nho phong van
-1. `annotation-config` = **kich hoat** annotations cho bean da co
-2. `component-scan` = **tim + dang ky** bean MOI + kich hoat annotations
-3. `component-scan` **bao gom** annotation-config (khong can ca 2)
+## Điểm quan trọng nhớ phỏng vấn
+1. `annotation-config` = **kích hoạt** annotations cho bean đã có
+2. `component-scan` = **tìm + đăng ký** bean MỚI + kích hoạt annotations
+3. `component-scan` **bao gồm** annotation-config (không cần cả 2)
 4. Spring Boot: `@SpringBootApplication` = `@ComponentScan` + `@EnableAutoConfiguration` + `@Configuration`

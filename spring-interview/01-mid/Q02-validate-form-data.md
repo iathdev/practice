@@ -1,41 +1,41 @@
 # Q2: How to validate form data in Spring Web MVC Framework?
 > **Dịch:** Làm thế nào để validate dữ liệu form trong Spring Web MVC?
 
-## Tra loi ngan gon
-> Spring ho tro validation qua **Bean Validation API** (JSR-303/380) voi cac annotation nhu `@NotNull`, `@Size`, `@Email`... ket hop `@Valid` trong controller.
+## Trả lời ngắn gọn
+> Spring hỗ trợ validation qua **Bean Validation API** (JSR-303/380) với các annotation như `@NotNull`, `@Size`, `@Email`... kết hợp `@Valid` trong controller.
 
-## Cach nho
+## Cách nhớ
 ```
-Validation = Bao ve (check truoc khi cho data vao he thong)
-@Valid     = "Nhan vien bao ve" o cua controller
+Validation = Bảo vệ (check trước khi cho data vào hệ thống)
+@Valid     = "Nhân viên bảo vệ" ở cửa controller
 ```
 
-## Cac buoc thuc hien
+## Các bước thực hiện
 
-### Buoc 1: Them annotation vao Model
+### Bước 1: Thêm annotation vào Model
 ```java
 public class UserForm {
 
-    @NotBlank(message = "Ten khong duoc de trong")
-    @Size(min = 2, max = 50, message = "Ten tu 2-50 ky tu")
+    @NotBlank(message = "Tên không được để trống")
+    @Size(min = 2, max = 50, message = "Tên từ 2-50 ký tự")
     private String name;
 
-    @NotBlank(message = "Email khong duoc de trong")
-    @Email(message = "Email khong hop le")
+    @NotBlank(message = "Email không được để trống")
+    @Email(message = "Email không hợp lệ")
     private String email;
 
-    @Min(value = 18, message = "Phai tu 18 tuoi tro len")
-    @Max(value = 100, message = "Tuoi khong hop le")
+    @Min(value = 18, message = "Phải từ 18 tuổi trở lên")
+    @Max(value = 100, message = "Tuổi không hợp lệ")
     private int age;
 
-    @Pattern(regexp = "^0[0-9]{9}$", message = "SDT phai 10 so, bat dau bang 0")
+    @Pattern(regexp = "^0[0-9]{9}$", message = "SĐT phải 10 số, bắt đầu bằng 0")
     private String phone;
 
     // getters, setters
 }
 ```
 
-### Buoc 2: Dung @Valid trong Controller
+### Bước 2: Dùng @Valid trong Controller
 ```java
 @RestController
 public class UserController {
@@ -43,7 +43,7 @@ public class UserController {
     @PostMapping("/users")
     public ResponseEntity<?> createUser(@Valid @RequestBody UserForm form,
                                          BindingResult result) {
-        // Kiem tra co loi khong
+        // Kiểm tra có lỗi không
         if (result.hasErrors()) {
             List<String> errors = result.getFieldErrors()
                 .stream()
@@ -52,38 +52,38 @@ public class UserController {
             return ResponseEntity.badRequest().body(errors);
         }
 
-        // Logic tao user...
+        // Logic tạo user...
         return ResponseEntity.ok("User created!");
     }
 }
 ```
 
-## Bang cac annotation validation thuong dung
+## Bảng các annotation validation thường dùng
 
-| Annotation | Muc dich | Vi du |
+| Annotation | Mục đích | Ví dụ |
 |-----------|----------|-------|
-| `@NotNull` | Khong duoc null | `@NotNull String name` |
-| `@NotBlank` | Khong null, khong rong, khong chi space | `@NotBlank String name` |
-| `@NotEmpty` | Khong null, khong rong (cho String/Collection) | `@NotEmpty List items` |
-| `@Size` | Do dai / kich thuoc | `@Size(min=2, max=50)` |
-| `@Min` / `@Max` | Gia tri so nho nhat / lon nhat | `@Min(18)` |
-| `@Email` | Dinh dang email | `@Email String email` |
+| `@NotNull` | Không được null | `@NotNull String name` |
+| `@NotBlank` | Không null, không rỗng, không chỉ space | `@NotBlank String name` |
+| `@NotEmpty` | Không null, không rỗng (cho String/Collection) | `@NotEmpty List items` |
+| `@Size` | Độ dài / kích thước | `@Size(min=2, max=50)` |
+| `@Min` / `@Max` | Giá trị số nhỏ nhất / lớn nhất | `@Min(18)` |
+| `@Email` | Định dạng email | `@Email String email` |
 | `@Pattern` | Regex | `@Pattern(regexp="...")` |
-| `@Past` / `@Future` | Ngay qua khu / tuong lai | `@Past LocalDate birthday` |
+| `@Past` / `@Future` | Ngày quá khứ / tương lai | `@Past LocalDate birthday` |
 
-## Custom Validator (tu tao)
+## Custom Validator (tự tạo)
 ```java
-// 1. Tao annotation
+// 1. Tạo annotation
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 @Constraint(validatedBy = PhoneValidator.class)
 public @interface ValidPhone {
-    String message() default "SDT khong hop le";
+    String message() default "SĐT không hợp lệ";
     Class<?>[] groups() default {};
     Class<?>[] payload() default {};
 }
 
-// 2. Tao validator class
+// 2. Tạo validator class
 public class PhoneValidator implements ConstraintValidator<ValidPhone, String> {
     @Override
     public boolean isValid(String phone, ConstraintValidatorContext ctx) {
@@ -91,15 +91,15 @@ public class PhoneValidator implements ConstraintValidator<ValidPhone, String> {
     }
 }
 
-// 3. Su dung
+// 3. Sử dụng
 public class UserForm {
     @ValidPhone
     private String phone;
 }
 ```
 
-## Diem quan trong nho phong van
-1. Dung **@Valid** (JSR-303) hoac **@Validated** (Spring - ho tro group)
-2. **BindingResult** phai dat **ngay sau** @Valid parameter
-3. Spring Boot tu dong co `spring-boot-starter-validation`
-4. Co the tao **Custom Validator** cho logic phuc tap
+## Điểm quan trọng nhớ phỏng vấn
+1. Dùng **@Valid** (JSR-303) hoặc **@Validated** (Spring - hỗ trợ group)
+2. **BindingResult** phải đặt **ngay sau** @Valid parameter
+3. Spring Boot tự động có `spring-boot-starter-validation`
+4. Có thể tạo **Custom Validator** cho logic phức tạp

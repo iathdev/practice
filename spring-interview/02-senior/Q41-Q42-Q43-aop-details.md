@@ -11,12 +11,12 @@
 
 ## Q41: Inner Beans
 
-### Tra loi ngan gon
-> **Inner bean** la bean duoc dinh nghia **ben trong** mot bean khac (trong XML config). No khong co id, khong the truy cap tu ben ngoai, chi dung cho bean cha.
+### Trả lời ngắn gọn
+> **Inner bean** là bean được định nghĩa **bên trong** một bean khác (trong XML config). Nó không có id, không thể truy cập từ bên ngoài, chỉ dùng cho bean cha.
 
 ```xml
 <bean id="orderService" class="com.example.OrderService">
-    <!-- Inner bean - chi dung trong orderService -->
+    <!-- Inner bean - chỉ dùng trong orderService -->
     <property name="emailService">
         <bean class="com.example.EmailService">
             <property name="host" value="smtp.gmail.com"/>
@@ -25,17 +25,17 @@
 </bean>
 ```
 
-### Tuong duong trong annotation (hien dai):
+### Tương đương trong annotation (hiện đại):
 ```java
 @Configuration
 public class AppConfig {
     @Bean
     public OrderService orderService() {
-        // emailService() giong nhu inner bean
+        // emailService() giống như inner bean
         return new OrderService(emailService());
     }
 
-    // Hoac bean rieng - KHUYEN DUNG hon inner bean
+    // Hoặc bean riêng - KHUYÊN DÙNG hơn inner bean
     @Bean
     public EmailService emailService() {
         return new EmailService("smtp.gmail.com");
@@ -43,65 +43,65 @@ public class AppConfig {
 }
 ```
 
-### Diem nho: Inner bean hiem dung trong thuc te. Annotation-based config thay the.
+### Điểm nhớ: Inner bean hiếm dùng trong thực tế. Annotation-based config thay thế.
 
 ---
 
 ## Q42: Join Point
 
-### Tra loi ngan gon
-> **Join Point** la mot **diem cu the** trong qua trinh thuc thi chuong trinh noi ma Aspect co the **chen vao**. Trong Spring AOP, Join Point luon la **method execution** (khong ho tro field access).
+### Trả lời ngắn gọn
+> **Join Point** là một **điểm cụ thể** trong quá trình thực thi chương trình nơi mà Aspect có thể **chèn vào**. Trong Spring AOP, Join Point luôn là **method execution** (không hỗ trợ field access).
 
 ```java
 @Before("execution(* com.example.service.*.*(..))")
 public void logBefore(JoinPoint joinPoint) {
-    // JoinPoint cho phep truy cap:
-    String methodName = joinPoint.getSignature().getName();     // Ten method
-    Object[] args = joinPoint.getArgs();                        // Tham so
-    Object target = joinPoint.getTarget();                      // Object goc
+    // JoinPoint cho phép truy cập:
+    String methodName = joinPoint.getSignature().getName();     // Tên method
+    Object[] args = joinPoint.getArgs();                        // Tham số
+    Object target = joinPoint.getTarget();                      // Object gốc
     String className = joinPoint.getTarget().getClass().getName();
     
     System.out.println(className + "." + methodName + "(" + Arrays.toString(args) + ")");
 }
 ```
 
-### Cac thong tin tu JoinPoint
+### Các thông tin từ JoinPoint
 
-| Method | Tra ve |
+| Method | Trả về |
 |--------|--------|
-| `getSignature()` | Ten method, return type |
-| `getArgs()` | Mang tham so |
-| `getTarget()` | Object goc (khong phai proxy) |
+| `getSignature()` | Tên method, return type |
+| `getArgs()` | Mảng tham số |
+| `getTarget()` | Object gốc (không phải proxy) |
 | `getThis()` | Proxy object |
 
 ---
 
 ## Q43: Aspect-Oriented Programming (AOP)
 
-### Tra loi ngan gon
-> AOP la **mo hinh lap trinh** bo sung cho OOP, cho phep tach **cross-cutting concerns** (logging, security, transaction) ra khoi business logic. Spring AOP dung **proxy** de "chen" logic vao truoc/sau method.
+### Trả lời ngắn gọn
+> AOP là **mô hình lập trình** bổ sung cho OOP, cho phép tách **cross-cutting concerns** (logging, security, transaction) ra khỏi business logic. Spring AOP dùng **proxy** để "chèn" logic vào trước/sau method.
 
-### Tai sao can AOP?
+### Tại sao cần AOP?
 ```
-OOP tot cho to chuc code theo OBJECT
-Nhung mot so logic KHONG thuoc rieng object nao:
-  - Logging -> can o MOI service
-  - Security -> can o MOI controller
-  - Transaction -> can o MOI write operation
+OOP tốt cho tổ chức code theo OBJECT
+Nhưng một số logic KHÔNG thuộc riêng object nào:
+  - Logging -> cần ở MỌI service
+  - Security -> cần ở MỌI controller
+  - Transaction -> cần ở MỌI write operation
 
-AOP = Giai phap cho van de nay
-```
-
-### Nguyen tac hoat dong
-```
-KHONG AOP:  Client --> Service.method()
-CO AOP:     Client --> Proxy --> [Advice] --> Service.method() --> [Advice] --> Response
+AOP = Giải pháp cho vấn đề này
 ```
 
-(Chi tiet xem Q03, Q07, Q31, Q35, Q39)
+### Nguyên tắc hoạt động
+```
+KHÔNG AOP:  Client --> Service.method()
+CÓ AOP:     Client --> Proxy --> [Advice] --> Service.method() --> [Advice] --> Response
+```
 
-## Diem quan trong nho phong van
-1. Inner bean = bean con dinh nghia trong bean cha (hiem dung)
-2. JoinPoint = diem cu the trong code (Spring chi ho tro **method execution**)
-3. AOP = tach cross-cutting concern, bo sung cho OOP
+(Chi tiết xem Q03, Q07, Q31, Q35, Q39)
+
+## Điểm quan trọng nhớ phỏng vấn
+1. Inner bean = bean con định nghĩa trong bean cha (hiếm dùng)
+2. JoinPoint = điểm cụ thể trong code (Spring chỉ hỗ trợ **method execution**)
+3. AOP = tách cross-cutting concern, bổ sung cho OOP
 4. Spring AOP = **proxy-based** (runtime), AspectJ = **bytecode-based** (compile/load time)

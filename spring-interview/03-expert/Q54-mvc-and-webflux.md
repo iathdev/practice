@@ -1,26 +1,26 @@
 # Q54: Can we use both Web MVC and WebFlux in the same application?
 > **Dịch:** Có thể dùng cả Web MVC và WebFlux trong cùng một ứng dụng không?
 
-## Tra loi ngan gon
-> **Khong the** dung ca hai cung luc trong 1 application. Spring Boot se chon **1 trong 2** dua tren classpath. Tuy nhien, ban co the dung **WebClient** (reactive HTTP client) trong ung dung MVC.
+## Trả lời ngắn gọn
+> **Không thể** dùng cả hai cùng lúc trong 1 application. Spring Boot sẽ chọn **1 trong 2** dựa trên classpath. Tuy nhiên, bạn có thể dùng **WebClient** (reactive HTTP client) trong ứng dụng MVC.
 
-## Cach nho
+## Cách nhớ
 ```
-MVC + WebFlux = 2 he thong lai xe khac nhau
-  Khong the vua lai so san vua lai so tu dong cung luc
-  Nhung co the dung GPS (WebClient) tren ca 2 loai xe
-```
-
-## Chi tiet
-
-### Spring Boot tu dong chon
-```
-Co spring-webmvc       -> Chay MVC (Tomcat)
-Co spring-webflux      -> Chay WebFlux (Netty)
-Co CA HAI              -> Mac dinh chon MVC
+MVC + WebFlux = 2 hệ thống lái xe khác nhau
+  Không thể vừa lái số sàn vừa lái số tự động cùng lúc
+  Nhưng có thể dùng GPS (WebClient) trên cả 2 loại xe
 ```
 
-### Dung WebClient trong MVC app (HAY DUNG)
+## Chi tiết
+
+### Spring Boot tự động chọn
+```
+Có spring-webmvc       -> Chạy MVC (Tomcat)
+Có spring-webflux      -> Chạy WebFlux (Netty)
+Có CẢ HAI              -> Mặc định chọn MVC
+```
+
+### Dùng WebClient trong MVC app (HAY DÙNG)
 ```java
 // application - Spring MVC (blocking)
 @RestController
@@ -36,27 +36,27 @@ public class OrderController {
     public OrderDto getOrder(@PathVariable Long id) {
         Order order = orderRepo.findById(id).orElseThrow();
 
-        // Dung WebClient trong MVC - goi external API
+        // Dùng WebClient trong MVC - gọi external API
         User user = webClient.get()
             .uri("/users/{userId}", order.getUserId())
             .retrieve()
             .bodyToMono(User.class)
-            .block(); // block() vi dang trong MVC context
+            .block(); // block() vì đang trong MVC context
 
         return new OrderDto(order, user);
     }
 }
 ```
 
-### Microservices: Tach rieng
+### Microservices: Tách riêng
 ```
-User Service    -> Spring MVC (CRUD don gian)
+User Service    -> Spring MVC (CRUD đơn giản)
 Gateway Service -> Spring WebFlux (routing, non-blocking)
 Chat Service    -> Spring WebFlux (WebSocket, streaming)
 ```
 
-## Diem quan trong nho phong van
-1. **KHONG** dung ca MVC va WebFlux trong 1 app
-2. Co ca 2 dependency -> Spring Boot **chon MVC**
-3. Co the dung **WebClient** trong MVC app (thay RestTemplate)
-4. Microservices: moi service **chon rieng** MVC hoac WebFlux
+## Điểm quan trọng nhớ phỏng vấn
+1. **KHÔNG** dùng cả MVC và WebFlux trong 1 app
+2. Có cả 2 dependency -> Spring Boot **chọn MVC**
+3. Có thể dùng **WebClient** trong MVC app (thay RestTemplate)
+4. Microservices: mỗi service **chọn riêng** MVC hoặc WebFlux

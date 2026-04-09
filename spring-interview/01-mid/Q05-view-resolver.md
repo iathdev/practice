@@ -1,18 +1,18 @@
 # Q5: How is the right View chosen when it comes to the rendering phase?
 > **Dịch:** View được chọn như thế nào trong giai đoạn rendering?
 
-## Tra loi ngan gon
-> Spring MVC su dung **ViewResolver** de chuyen doi ten view (String) thanh doi tuong View cu the. ViewResolver se tim view phu hop dua tren ten logic va cau hinh (prefix/suffix).
+## Trả lời ngắn gọn
+> Spring MVC sử dụng **ViewResolver** để chuyển đổi tên view (String) thành đối tượng View cụ thể. ViewResolver sẽ tìm view phù hợp dựa trên tên logic và cấu hình (prefix/suffix).
 
-## Cach nho
+## Cách nhớ
 ```
-Controller tra ve: "home"
-ViewResolver dich: "home" --> /WEB-INF/views/home.jsp
+Controller trả về: "home"
+ViewResolver dịch: "home" --> /WEB-INF/views/home.jsp
 
-Giong nhu: Ban noi "Cafe" --> GPS tim ra "Cafe ABC, 123 Nguyen Hue"
+Giống như: Bạn nói "Cafe" --> GPS tìm ra "Cafe ABC, 123 Nguyễn Huệ"
 ```
 
-## Qua trinh chon View
+## Quá trình chọn View
 
 ```
 Client Request
@@ -21,10 +21,10 @@ Client Request
 DispatcherServlet
      |
      v
-Controller --> tra ve "userList" (ten logic)
+Controller --> trả về "userList" (tên logic)
      |
      v
-ViewResolver --> tim view phu hop
+ViewResolver --> tìm view phù hợp
      |
      v
 View (JSP/Thymeleaf/...) --> render HTML
@@ -33,7 +33,7 @@ View (JSP/Thymeleaf/...) --> render HTML
 Client Response (HTML)
 ```
 
-## Cac loai ViewResolver pho bien
+## Các loại ViewResolver phổ biến
 
 ### 1. InternalResourceViewResolver (JSP)
 ```java
@@ -48,55 +48,55 @@ public class WebConfig {
     }
 }
 
-// Controller tra ve "home" --> /WEB-INF/views/home.jsp
-// Controller tra ve "user/list" --> /WEB-INF/views/user/list.jsp
+// Controller trả về "home" --> /WEB-INF/views/home.jsp
+// Controller trả về "user/list" --> /WEB-INF/views/user/list.jsp
 ```
 
 ### 2. ThymeleafViewResolver (Thymeleaf)
 ```java
-// Spring Boot tu cau hinh
-// Controller tra ve "home" --> templates/home.html
+// Spring Boot tự cấu hình
+// Controller trả về "home" --> templates/home.html
 
 @Controller
 public class HomeController {
     @GetMapping("/")
     public String home(Model model) {
         model.addAttribute("message", "Hello World");
-        return "home"; // ViewResolver se tim templates/home.html
+        return "home"; // ViewResolver sẽ tìm templates/home.html
     }
 }
 ```
 
-### 3. Nhieu ViewResolver (chain)
+### 3. Nhiều ViewResolver (chain)
 ```java
 @Bean
 public ViewResolver jspViewResolver() {
     InternalResourceViewResolver resolver = new InternalResourceViewResolver();
     resolver.setPrefix("/WEB-INF/views/");
     resolver.setSuffix(".jsp");
-    resolver.setOrder(2); // Thu tu uu tien (so nho = uu tien cao)
+    resolver.setOrder(2); // Thứ tự ưu tiên (số nhỏ = ưu tiên cao)
     return resolver;
 }
 
 @Bean
 public ViewResolver thymeleafViewResolver() {
     ThymeleafViewResolver resolver = new ThymeleafViewResolver();
-    resolver.setOrder(1); // Uu tien cao hon
+    resolver.setOrder(1); // Ưu tiên cao hơn
     return resolver;
 }
-// Spring se thu Thymeleaf truoc, neu khong tim thay -> thu JSP
+// Spring sẽ thử Thymeleaf trước, nếu không tìm thấy -> thử JSP
 ```
 
-## Cac kieu tra ve cua Controller
+## Các kiểu trả về của Controller
 
 ```java
 @Controller
 public class MyController {
 
-    // 1. Tra ve ten View (dung ViewResolver)
+    // 1. Trả về tên View (dùng ViewResolver)
     @GetMapping("/page1")
     public String page1() {
-        return "page1"; // ViewResolver se dich thanh file cu the
+        return "page1"; // ViewResolver sẽ dịch thành file cụ thể
     }
 
     // 2. Redirect
@@ -121,8 +121,8 @@ public class MyController {
 }
 ```
 
-## Diem quan trong nho phong van
-1. **ViewResolver** chuyen ten logic -> View cu the
-2. Co the **chain** nhieu ViewResolver voi thu tu uu tien (`setOrder`)
-3. `@RestController` / `@ResponseBody` **KHONG** dung ViewResolver (tra JSON truc tiep)
-4. Spring Boot tu cau hinh ThymeleafViewResolver neu co dependency
+## Điểm quan trọng nhớ phỏng vấn
+1. **ViewResolver** chuyển tên logic -> View cụ thể
+2. Có thể **chain** nhiều ViewResolver với thứ tự ưu tiên (`setOrder`)
+3. `@RestController` / `@ResponseBody` **KHÔNG** dùng ViewResolver (trả JSON trực tiếp)
+4. Spring Boot tự cấu hình ThymeleafViewResolver nếu có dependency

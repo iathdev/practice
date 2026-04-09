@@ -1,29 +1,29 @@
 # Q1: What is Spring JDBCTemplate class and how to use it?
 > **Dịch:** Spring JDBCTemplate là gì và sử dụng nó như thế nào?
 
-## Tra loi ngan gon
-> JdbcTemplate la class giup **don gian hoa** viec lam viec voi JDBC, tu dong xu ly mo/dong connection, xu ly exception.
+## Trả lời ngắn gọn
+> JdbcTemplate là class giúp **đơn giản hóa** việc làm việc với JDBC, tự động xử lý mở/đóng connection, xử lý exception.
 
-## Tai sao can JdbcTemplate?
-JDBC truyen thong rat **verbose** (nhieu code lap lai):
-- Mo connection
-- Tao PreparedStatement
+## Tại sao cần JdbcTemplate?
+JDBC truyền thống rất **verbose** (nhiều code lặp lại):
+- Mở connection
+- Tạo PreparedStatement
 - Set params
-- Xu ly ResultSet
-- Dong connection
-- Bat exception
+- Xử lý ResultSet
+- Đóng connection
+- Bắt exception
 
-**JdbcTemplate lam tat ca nhung viec nay cho ban!**
+**JdbcTemplate làm tất cả những việc này cho bạn!**
 
-## Cach nho
+## Cách nhớ
 ```
-JDBC thuong = Tu lai xe (phai tu mo cua, khoi dong, lai, do, tat may)
-JdbcTemplate = Uber     (chi can noi dia chi, xe tu chay)
+JDBC thường = Tự lái xe (phải tự mở cửa, khởi động, lái, đỗ, tắt máy)
+JdbcTemplate = Uber     (chỉ cần nói địa chỉ, xe tự chạy)
 ```
 
-## Vi du so sanh
+## Ví dụ so sánh
 
-### JDBC truyen thong (DAI DONG):
+### JDBC truyền thống (DÀI DÒNG):
 ```java
 Connection conn = null;
 PreparedStatement ps = null;
@@ -40,13 +40,13 @@ try {
         return user;
     }
 } catch (SQLException e) {
-    // xu ly exception
+    // xử lý exception
 } finally {
-    // dong rs, ps, conn (them 15 dong nua!)
+    // đóng rs, ps, conn (thêm 15 dòng nữa!)
 }
 ```
 
-### JdbcTemplate (GON GANG):
+### JdbcTemplate (GỌN GÀNG):
 ```java
 @Repository
 public class UserDao {
@@ -62,7 +62,7 @@ public class UserDao {
         );
     }
 
-    // Query danh sach
+    // Query danh sách
     public List<User> findAll() {
         return jdbcTemplate.query(
             "SELECT * FROM users",
@@ -80,19 +80,19 @@ public class UserDao {
 }
 ```
 
-## Cac method chinh cua JdbcTemplate
+## Các method chính của JdbcTemplate
 
-| Method | Muc dich | Vi du |
+| Method | Mục đích | Ví dụ |
 |--------|----------|-------|
-| `query()` | SELECT tra ve List | `query(sql, rowMapper)` |
-| `queryForObject()` | SELECT tra ve 1 object | `queryForObject(sql, rowMapper, id)` |
+| `query()` | SELECT trả về List | `query(sql, rowMapper)` |
+| `queryForObject()` | SELECT trả về 1 object | `queryForObject(sql, rowMapper, id)` |
 | `update()` | INSERT / UPDATE / DELETE | `update(sql, params...)` |
 | `execute()` | DDL (CREATE TABLE...) | `execute(sql)` |
-| `batchUpdate()` | Chay nhieu lenh 1 luc | `batchUpdate(sql, batchArgs)` |
+| `batchUpdate()` | Chạy nhiều lệnh 1 lúc | `batchUpdate(sql, batchArgs)` |
 
-## Cau hinh trong Spring Boot
+## Cấu hình trong Spring Boot
 ```yaml
-# application.yml - chi can khai bao, Spring Boot tu tao JdbcTemplate
+# application.yml - chỉ cần khai báo, Spring Boot tự tạo JdbcTemplate
 spring:
   datasource:
     url: jdbc:mysql://localhost:3306/mydb
@@ -100,8 +100,8 @@ spring:
     password: 123456
 ```
 
-## Diem quan trong nho phong van
-1. JdbcTemplate **khong phai ORM** (khac voi Hibernate/JPA)
-2. Tu dong xu ly **resource management** (dong connection)
-3. Chuyen SQLException thanh **DataAccessException** (unchecked)
-4. **Thread-safe** - co the dung chung trong nhieu thread
+## Điểm quan trọng nhớ phỏng vấn
+1. JdbcTemplate **không phải ORM** (khác với Hibernate/JPA)
+2. Tự động xử lý **resource management** (đóng connection)
+3. Chuyển SQLException thành **DataAccessException** (unchecked)
+4. **Thread-safe** - có thể dùng chung trong nhiều thread

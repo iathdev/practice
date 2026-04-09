@@ -8,40 +8,40 @@
 
 ## Q52: Reactive Programming
 
-### Tra loi ngan gon
-> Reactive programming la mo hinh lap trinh **bat dong bo** (asynchronous), xu ly **data streams**, voi co che **backpressure** (kiem soat toc do). Dua tren Reactive Streams spec voi 4 interface: Publisher, Subscriber, Subscription, Processor.
+### Trả lời ngắn gọn
+> Reactive programming là mô hình lập trình **bất đồng bộ** (asynchronous), xử lý **data streams**, với cơ chế **backpressure** (kiểm soát tốc độ). Dựa trên Reactive Streams spec với 4 interface: Publisher, Subscriber, Subscription, Processor.
 
-### Cach nho
+### Cách nhớ
 ```
-Imperative  = Doc bao giay  (doc tung trang, doi in xong moi doc)
-Reactive    = Doc tin tuc online (tin moi tu dong hien, cuon len xem)
-Backpressure = Noi "cham lai!" khi tin nhieu qua
-```
-
-### 4 nguyen tac cua Reactive
-```
-1. RESPONSIVE   - Phan hoi nhanh
-2. RESILIENT    - Chiu loi tot
-3. ELASTIC      - Co gian (scale)
-4. MESSAGE-DRIVEN - Giao tiep qua message (async)
+Imperative  = Đọc báo giấy  (đọc từng trang, đợi in xong mới đọc)
+Reactive    = Đọc tin tức online (tin mới tự động hiện, cuộn lên xem)
+Backpressure = Nói "chậm lại!" khi tin nhiều quá
 ```
 
-### Vi du voi Project Reactor
+### 4 nguyên tắc của Reactive
+```
+1. RESPONSIVE   - Phản hồi nhanh
+2. RESILIENT    - Chịu lỗi tốt
+3. ELASTIC      - Co giãn (scale)
+4. MESSAGE-DRIVEN - Giao tiếp qua message (async)
+```
+
+### Ví dụ với Project Reactor
 ```java
-// Mono: 0 hoac 1 ket qua
+// Mono: 0 hoặc 1 kết quả
 Mono<User> user = userRepo.findById("1");
 
-// Flux: 0 den N ket qua
+// Flux: 0 đến N kết quả
 Flux<User> users = userRepo.findAll();
 
-// Chuoi xu ly (pipeline)
+// Chuỗi xử lý (pipeline)
 Flux<String> names = userRepo.findAll()
-    .filter(u -> u.getAge() > 18)        // loc
-    .map(User::getName)                   // chuyen doi
-    .sort()                               // sap xep
-    .take(10);                            // lay 10 ket qua dau
+    .filter(u -> u.getAge() > 18)        // lọc
+    .map(User::getName)                   // chuyển đổi
+    .sort()                               // sắp xếp
+    .take(10);                            // lấy 10 kết quả đầu
 
-// Ket hop nhieu nguon du lieu
+// Kết hợp nhiều nguồn dữ liệu
 Mono<OrderSummary> summary = Mono.zip(
     userService.findById(userId),
     orderService.findByUser(userId),
@@ -53,35 +53,35 @@ Mono<OrderSummary> summary = Mono.zip(
 
 ## Q53: Spring MVC vs Struts MVC
 
-### Tra loi ngan gon
-> Spring MVC vuot troi Struts MVC o nhieu mat: **linh hoat hon, tich hop tot hon, de test, khong rang buoc ke thua class, ho tro annotation**.
+### Trả lời ngắn gọn
+> Spring MVC vượt trội Struts MVC ở nhiều mặt: **linh hoạt hơn, tích hợp tốt hơn, dễ test, không ràng buộc kế thừa class, hỗ trợ annotation**.
 
-### So sanh
+### So sánh
 
 | | Spring MVC | Struts MVC |
 |--|:---:|:---:|
-| Controller | POJO (@Controller) | Phai extend ActionClass |
-| Config | Annotation (ít XML) | Nhieu XML |
-| Tich hop | Tich hop Spring ecosystem | Can plugin |
-| Test | De (POJO + DI) | Kho (phu thuoc Servlet) |
-| View | Nhieu lua chon (Thymeleaf, JSP, JSON) | Chu yeu JSP |
-| Community | Rat lon, active | Hau nhu ngung phat trien |
-| Validation | Bean Validation tich hop | XML-based |
-| REST | @RestController | Kho khan |
-| Thread safety | Singleton bean (stateless) | Moi request 1 Action |
+| Controller | POJO (@Controller) | Phải extend ActionClass |
+| Config | Annotation (ít XML) | Nhiều XML |
+| Tích hợp | Tích hợp Spring ecosystem | Cần plugin |
+| Test | Dễ (POJO + DI) | Khó (phụ thuộc Servlet) |
+| View | Nhiều lựa chọn (Thymeleaf, JSP, JSON) | Chủ yếu JSP |
+| Community | Rất lớn, active | Hầu như ngừng phát triển |
+| Validation | Bean Validation tích hợp | XML-based |
+| REST | @RestController | Khó khăn |
+| Thread safety | Singleton bean (stateless) | Mỗi request 1 Action |
 
-### Tai sao Spring MVC thang?
+### Tại sao Spring MVC thắng?
 ```
-1. Khong can ke thua class cu the (POJO)
-2. Annotation-driven (it XML)
-3. Tich hop voi Spring ecosystem (Security, Data, Boot)
-4. De test (MockMvc, DI)
-5. Ho tro REST native (@RestController)
-6. Community lon, cap nhat lien tuc
+1. Không cần kế thừa class cụ thể (POJO)
+2. Annotation-driven (ít XML)
+3. Tích hợp với Spring ecosystem (Security, Data, Boot)
+4. Dễ test (MockMvc, DI)
+5. Hỗ trợ REST native (@RestController)
+6. Community lớn, cập nhật liên tục
 ```
 
-## Diem quan trong nho phong van
+## Điểm quan trọng nhớ phỏng vấn
 1. Reactive = **async, non-blocking, backpressure** (Mono/Flux)
-2. Spring MVC > Struts: **POJO, annotation, tich hop, de test**
-3. Struts da **loi thoi**, Spring MVC la **chuan cong nghiep**
-4. Reactive chi nen dung khi can **high concurrency / streaming**
+2. Spring MVC > Struts: **POJO, annotation, tích hợp, dễ test**
+3. Struts đã **lỗi thời**, Spring MVC là **chuẩn công nghiệp**
+4. Reactive chỉ nên dùng khi cần **high concurrency / streaming**

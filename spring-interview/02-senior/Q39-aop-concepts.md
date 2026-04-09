@@ -1,85 +1,85 @@
 # Q39: What are Aspect, Advice, Pointcut, and JoinPoint in AOP?
 > **Dịch:** Aspect, Advice, Pointcut và JoinPoint trong AOP là gì?
 
-## Tra loi ngan gon
-> 4 khai niem cot loi cua AOP:
-> - **Aspect** = Module chua logic cat ngang (class danh dau @Aspect)
-> - **Advice** = Hanh dong cu the (Before, After, Around...)
-> - **Pointcut** = Bieu thuc xac dinh AP DUNG O DAU
-> - **JoinPoint** = Diem cu the trong code (method dang chay)
+## Trả lời ngắn gọn
+> 4 khái niệm cốt lõi của AOP:
+> - **Aspect** = Module chứa logic cắt ngang (class đánh dấu @Aspect)
+> - **Advice** = Hành động cụ thể (Before, After, Around...)
+> - **Pointcut** = Biểu thức xác định ÁP DỤNG Ở ĐÂU
+> - **JoinPoint** = Điểm cụ thể trong code (method đang chạy)
 
-## Cach nho - Vi du camera an ninh
+## Cách nhớ - Ví dụ camera an ninh
 
 ```
-Aspect   = He thong camera an ninh (toan bo he thong)
-Advice   = Camera LAM GI (chup hinh, quay video, bao dong)
-Pointcut = Camera DAT O DAU (cua chinh, kho hang, phong server)
-JoinPoint = THOI DIEM cu the camera chup (khi ai do di qua)
+Aspect   = Hệ thống camera an ninh (toàn bộ hệ thống)
+Advice   = Camera LÀM GÌ (chụp hình, quay video, báo động)
+Pointcut = Camera ĐẶT Ở ĐÂU (cửa chính, kho hàng, phòng server)
+JoinPoint = THỜI ĐIỂM cụ thể camera chụp (khi ai đó đi qua)
 ```
 
-## Vi du ket hop tat ca
+## Ví dụ kết hợp tất cả
 
 ```java
-@Aspect                          // <-- ASPECT: module chua logic
+@Aspect                          // <-- ASPECT: module chứa logic
 @Component
 public class SecurityAspect {
 
-    // POINTCUT: dinh nghia ap dung o dau
+    // POINTCUT: định nghĩa áp dụng ở đâu
     @Pointcut("@annotation(com.example.Secured)")
     public void securedMethods() {}
 
-    // ADVICE: dinh nghia lam gi + khi nao
+    // ADVICE: định nghĩa làm gì + khi nào
     @Before("securedMethods()")
-    public void checkPermission(JoinPoint joinPoint) {  // <-- JOINPOINT: diem cu the
+    public void checkPermission(JoinPoint joinPoint) {  // <-- JOINPOINT: điểm cụ thể
         String method = joinPoint.getSignature().getName();
         Object[] args = joinPoint.getArgs();
         
-        // Kiem tra quyen
+        // Kiểm tra quyền
         if (!hasPermission()) {
             throw new AccessDeniedException("No permission for: " + method);
         }
     }
 }
 
-// Su dung:
+// Sử dụng:
 @Service
 public class AdminService {
-    @Secured                     // Method nay se bi kiem tra quyen
+    @Secured                     // Method này sẽ bị kiểm tra quyền
     public void deleteUser(Long id) { }
 }
 ```
 
-## Pointcut Expressions pho bien
+## Pointcut Expressions phổ biến
 
 ```java
 // 1. Theo method pattern
 @Pointcut("execution(* com.example.service.*.*(..))")
-// = Tat ca method, trong tat ca class, package service
+// = Tất cả method, trong tất cả class, package service
 
 // 2. Theo annotation
 @Pointcut("@annotation(org.springframework.transaction.annotation.Transactional)")
-// = Tat ca method co @Transactional
+// = Tất cả method có @Transactional
 
-// 3. Theo class co annotation
+// 3. Theo class có annotation
 @Pointcut("@within(org.springframework.stereotype.Service)")
-// = Tat ca method trong class co @Service
+// = Tất cả method trong class có @Service
 
-// 4. Ket hop (AND, OR, NOT)
+// 4. Kết hợp (AND, OR, NOT)
 @Pointcut("execution(* com.example.service.*.*(..)) && !execution(* *.get*(..))")
-// = Tat ca method trong service TRU getXxx methods
+// = Tất cả method trong service TRỪ getXxx methods
 ```
 
-## Bang tom tat
+## Bảng tóm tắt
 
-| Khai niem | La gi | Vi du |
+| Khái niệm | Là gì | Ví dụ |
 |-----------|-------|-------|
-| **Aspect** | Class chua cross-cutting logic | `@Aspect class LoggingAspect` |
-| **Advice** | Hanh dong (Before/After/Around) | `@Before("pointcut")` |
-| **Pointcut** | Bieu thuc xac dinh noi ap dung | `execution(* service.*.*(..))` |
-| **JoinPoint** | Diem thuc thi cu the | Method dang chay, co ten + args |
+| **Aspect** | Class chứa cross-cutting logic | `@Aspect class LoggingAspect` |
+| **Advice** | Hành động (Before/After/Around) | `@Before("pointcut")` |
+| **Pointcut** | Biểu thức xác định nơi áp dụng | `execution(* service.*.*(..))` |
+| **JoinPoint** | Điểm thực thi cụ thể | Method đang chạy, có tên + args |
 
-## Diem quan trong nho phong van
-1. **Aspect** = Pointcut + Advice (O DAU + LAM GI)
-2. **JoinPoint** cho truy cap **ten method, tham so, target object**
-3. **Pointcut** dung bieu thuc `execution()`, `@annotation()`, `within()`
-4. Co the **tai su dung** Pointcut bang cach dinh nghia rieng
+## Điểm quan trọng nhớ phỏng vấn
+1. **Aspect** = Pointcut + Advice (Ở ĐÂU + LÀM GÌ)
+2. **JoinPoint** cho truy cập **tên method, tham số, target object**
+3. **Pointcut** dùng biểu thức `execution()`, `@annotation()`, `within()`
+4. Có thể **tái sử dụng** Pointcut bằng cách định nghĩa riêng

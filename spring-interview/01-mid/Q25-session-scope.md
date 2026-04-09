@@ -1,21 +1,21 @@
 # Q25: What is the purpose of the session scope?
 > **Dịch:** Mục đích của Session Scope là gì?
 
-## Tra loi ngan gon
-> **Session scope** tao **1 instance bean rieng** cho moi HTTP session cua user. Bean ton tai suot session va bi huy khi session het han. Dung de luu thong tin **rieng cua tung user** nhu gio hang, preferences.
+## Trả lời ngắn gọn
+> **Session scope** tạo **1 instance bean riêng** cho mỗi HTTP session của user. Bean tồn tại suốt session và bị hủy khi session hết hạn. Dùng để lưu thông tin **riêng của từng user** như giỏ hàng, preferences.
 
-## Cach nho
+## Cách nhớ
 ```
-Singleton = TV o sanh (tat ca khach xem chung)
-Session   = Remote TV trong phong (moi khach 1 cai rieng)
-Request   = Khan mat (dung 1 lan roi bo)
+Singleton = TV ở sảnh (tất cả khách xem chung)
+Session   = Remote TV trong phòng (mỗi khách 1 cái riêng)
+Request   = Khăn mặt (dùng 1 lần rồi bỏ)
 ```
 
-## Vi du thuc te: Shopping Cart
+## Ví dụ thực tế: Shopping Cart
 
 ```java
 @Component
-@SessionScope  // Moi user co 1 ShoppingCart rieng
+@SessionScope  // Mỗi user có 1 ShoppingCart riêng
 public class ShoppingCart {
     private List<Item> items = new ArrayList<>();
 
@@ -38,48 +38,48 @@ public class ShoppingCart {
 @RestController
 public class CartController {
     @Autowired
-    private ShoppingCart cart; // Moi user nhan cart RIENG cua minh
+    private ShoppingCart cart; // Mỗi user nhận cart RIÊNG của mình
 
     @PostMapping("/cart/add")
     public ShoppingCart addToCart(@RequestBody Item item) {
-        cart.addItem(item);  // User A them -> chi co trong cart User A
+        cart.addItem(item);  // User A thêm -> chỉ có trong cart User A
         return cart;
     }
 
     @GetMapping("/cart")
     public ShoppingCart viewCart() {
-        return cart; // Tra ve cart cua user HIEN TAI
+        return cart; // Trả về cart của user HIỆN TẠI
     }
 }
 ```
 
-## Cac web scope
+## Các web scope
 
-| Scope | Vong doi | Use case |
+| Scope | Vòng đời | Use case |
 |-------|---------|----------|
 | **request** | 1 HTTP request | Request-specific data, form data |
 | **session** | 1 HTTP session | Shopping cart, user preferences |
 | **application** | 1 ServletContext | Shared config, app-wide counter |
 
-## Luu y: Inject session-scoped bean vao singleton
+## Lưu ý: Inject session-scoped bean vào singleton
 
 ```java
-// Spring tu dong tao PROXY de xu ly
+// Spring tự động tạo PROXY để xử lý
 @Service // Singleton
 public class OrderService {
     @Autowired
     private ShoppingCart cart; // Session scope -> Spring inject PROXY
-    // Proxy se delegate den dung cart cua session hien tai
+    // Proxy sẽ delegate đến đúng cart của session hiện tại
 }
 
-// Hoac khai bao ro proxyMode
+// Hoặc khai báo rõ proxyMode
 @Component
 @Scope(value = "session", proxyMode = ScopedProxyMode.TARGET_CLASS)
 public class ShoppingCart { }
 ```
 
-## Diem quan trong nho phong van
+## Điểm quan trọng nhớ phỏng vấn
 1. Session scope = **1 bean / 1 user session**
-2. Dung cho: **gio hang, user preferences, wizard multi-step form**
-3. Inject vao singleton -> Spring dung **scoped proxy** tu dong
-4. Chi hoat dong trong **web application**
+2. Dùng cho: **giỏ hàng, user preferences, wizard multi-step form**
+3. Inject vào singleton -> Spring dùng **scoped proxy** tự động
+4. Chỉ hoạt động trong **web application**

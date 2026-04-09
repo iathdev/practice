@@ -1,26 +1,26 @@
 # Q17: Does Spring Bean provide thread safety?
 > **Dịch:** Spring Bean có đảm bảo an toàn luồng (thread safety) không?
 
-## Tra loi ngan gon
-> **KHONG!** Spring **khong dam bao** thread safety cho bean. Singleton bean duoc chia se giua nhieu thread, nen neu bean chua **mutable state** thi co the bi **race condition**. Developer phai tu xu ly thread safety.
+## Trả lời ngắn gọn
+> **KHÔNG!** Spring **không đảm bảo** thread safety cho bean. Singleton bean được chia sẻ giữa nhiều thread, nên nếu bean chứa **mutable state** thì có thể bị **race condition**. Developer phải tự xử lý thread safety.
 
-## Cach nho
+## Cách nhớ
 ```
-Singleton bean = Can ho chung cu (nhieu nguoi dung chung)
-  - Khong co do ca nhan (stateless) -> An toan
-  - Co do ca nhan (stateful) -> Se bi xung dot!
+Singleton bean = Căn hộ chung cư (nhiều người dùng chung)
+  - Không có đồ cá nhân (stateless) -> An toàn
+  - Có đồ cá nhân (stateful) -> Sẽ bị xung đột!
 ```
 
-## Van de: Singleton + State = NGUY HIEM
+## Vấn đề: Singleton + State = NGUY HIỂM
 
 ```java
-// SAI - KHONG THREAD SAFE!
-@Service // Singleton - 1 instance chia se cho nhieu thread
+// SAI - KHÔNG THREAD SAFE!
+@Service // Singleton - 1 instance chia sẻ cho nhiều thread
 public class CounterService {
-    private int count = 0; // STATE - chia se giua cac thread
+    private int count = 0; // STATE - chia sẻ giữa các thread
 
     public void increment() {
-        count++; // Thread A va B goi cung luc -> RACE CONDITION!
+        count++; // Thread A và B gọi cùng lúc -> RACE CONDITION!
     }
 
     public int getCount() {
@@ -28,37 +28,37 @@ public class CounterService {
     }
 }
 
-// Thread A: doc count = 5
-// Thread B: doc count = 5
+// Thread A: đọc count = 5
+// Thread B: đọc count = 5
 // Thread A: ghi count = 6
-// Thread B: ghi count = 6  <- MAT 1 lan increment!
+// Thread B: ghi count = 6  <- MẤT 1 lần increment!
 ```
 
-## Giai phap
+## Giải pháp
 
-### 1. KHONG chua state (BEST PRACTICE)
+### 1. KHÔNG chứa state (BEST PRACTICE)
 ```java
 @Service
 public class UserService {
-    private final UserRepository userRepo; // dependency, khong phai state
+    private final UserRepository userRepo; // dependency, không phải state
 
     public User findById(Long id) {
         return userRepo.findById(id).orElse(null);
-        // Moi du lieu deu la LOCAL variable -> thread safe
+        // Mọi dữ liệu đều là LOCAL variable -> thread safe
     }
 }
 ```
 
-### 2. Dung Prototype scope
+### 2. Dùng Prototype scope
 ```java
 @Component
-@Scope("prototype") // Moi thread 1 instance rieng
+@Scope("prototype") // Mỗi thread 1 instance riêng
 public class ShoppingCart {
-    private List<Item> items = new ArrayList<>(); // OK vi moi thread co rieng
+    private List<Item> items = new ArrayList<>(); // OK vì mỗi thread có riêng
 }
 ```
 
-### 3. Dung ThreadLocal
+### 3. Dùng ThreadLocal
 ```java
 @Component
 public class UserContext {
@@ -70,7 +70,7 @@ public class UserContext {
 }
 ```
 
-### 4. Dung Synchronized / Lock
+### 4. Dùng Synchronized / Lock
 ```java
 @Service
 public class CounterService {
@@ -82,7 +82,7 @@ public class CounterService {
 }
 ```
 
-### 5. Dung ConcurrentHashMap thay HashMap
+### 5. Dùng ConcurrentHashMap thay HashMap
 ```java
 @Component
 public class CacheService {
@@ -91,17 +91,17 @@ public class CacheService {
 }
 ```
 
-## Bang tom tat
+## Bảng tóm tắt
 
-| Tinh huong | Thread safe? | Giai phap |
+| Tình huống | Thread safe? | Giải pháp |
 |-----------|:---:|-----------|
-| Singleton + khong state | Co | Khong can lam gi |
-| Singleton + mutable state | **KHONG** | Tranh state / dung AtomicXxx |
-| Prototype | Co | Moi thread 1 instance |
-| Request/Session scope | Co | Gan voi 1 request/session |
+| Singleton + không state | Có | Không cần làm gì |
+| Singleton + mutable state | **KHÔNG** | Tránh state / dùng AtomicXxx |
+| Prototype | Có | Mỗi thread 1 instance |
+| Request/Session scope | Có | Gắn với 1 request/session |
 
-## Diem quan trong nho phong van
-1. Spring **KHONG** dam bao thread safety
-2. Best practice: **Stateless** singleton bean (khong chua data thay doi)
-3. Neu can state: dung **prototype**, **ThreadLocal**, hoac **concurrent collections**
-4. `final` field (dependency) **khong phai** la state -> an toan
+## Điểm quan trọng nhớ phỏng vấn
+1. Spring **KHÔNG** đảm bảo thread safety
+2. Best practice: **Stateless** singleton bean (không chứa data thay đổi)
+3. Nếu cần state: dùng **prototype**, **ThreadLocal**, hoặc **concurrent collections**
+4. `final` field (dependency) **không phải** là state -> an toàn

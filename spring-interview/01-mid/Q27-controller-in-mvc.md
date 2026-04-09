@@ -1,18 +1,18 @@
 # Q27: What is Controller in Spring MVC framework?
 > **Dịch:** Controller trong Spring MVC Framework là gì?
 
-## Tra loi ngan gon
-> **Controller** la component xu ly HTTP request tu client, goi business logic (Service), va tra ve response (View hoac JSON). Trong Spring MVC, controller duoc danh dau bang `@Controller` hoac `@RestController`.
+## Trả lời ngắn gọn
+> **Controller** là component xử lý HTTP request từ client, gọi business logic (Service), và trả về response (View hoặc JSON). Trong Spring MVC, controller được đánh dấu bằng `@Controller` hoặc `@RestController`.
 
-## Cach nho
+## Cách nhớ
 ```
-Controller = Boi ban nha hang
-1. Nhan order (HTTP Request)
-2. Chuyen cho bep (Service layer)
-3. Mang mon ra (Response)
+Controller = Bồi bàn nhà hàng
+1. Nhận order (HTTP Request)
+2. Chuyển cho bếp (Service layer)
+3. Mang món ra (Response)
 ```
 
-## Vi du day du
+## Ví dụ đầy đủ
 
 ```java
 @RestController
@@ -61,17 +61,17 @@ public class UserController {
 }
 ```
 
-## Controller CHI nen lam gi?
+## Controller CHỈ nên làm gì?
 ```
-CO nen:                           KHONG nen:
-- Nhan request                    - Viet business logic
-- Validate input (@Valid)         - Truy cap database truc tiep
-- Goi Service                     - Xu ly phuc tap
-- Tra ve response                 - Giu state
+NÊN làm:                           KHÔNG NÊN làm:
+- Nhận request                    - Viết business logic
+- Validate input (@Valid)         - Truy cập database trực tiếp
+- Gọi Service                     - Xử lý phức tạp
+- Trả về response                 - Giữ state
 ```
 
-## Diem quan trong nho phong van
-1. Controller la **entry point** cua request
-2. Nen **mong** (thin controller) - logic o **Service layer**
+## Điểm quan trọng nhớ phỏng vấn
+1. Controller là **entry point** của request
+2. Nên **mỏng** (thin controller) - logic ở **Service layer**
 3. `@Controller` -> View, `@RestController` -> JSON
-4. Dung `ResponseEntity` khi can control **status code va headers**
+4. Dùng `ResponseEntity` khi cần control **status code và headers**

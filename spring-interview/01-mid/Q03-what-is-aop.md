@@ -1,36 +1,36 @@
 # Q3: What is AOP?
 > **Dịch:** AOP (Lập trình hướng khía cạnh) là gì?
 
-## Tra loi ngan gon
-> AOP (Aspect-Oriented Programming) la ky thuat lap trinh huong **khi canh**, cho phep tach cac **cross-cutting concerns** (logging, security, transaction) ra khoi business logic chinh.
+## Trả lời ngắn gọn
+> AOP (Aspect-Oriented Programming) là kỹ thuật lập trình hướng **khía cạnh**, cho phép tách các **cross-cutting concerns** (logging, security, transaction) ra khỏi business logic chính.
 
-## Cach nho
+## Cách nhớ
 ```
-OOP  = To chuc code theo OBJECT (doi tuong)
-AOP  = To chuc code theo ASPECT (khi canh / moi quan tam chung)
+OOP  = Tổ chức code theo OBJECT (đối tượng)
+AOP  = Tổ chức code theo ASPECT (khía cạnh / mối quan tâm chung)
 
-Vi du thuc te:
-- Business logic = Lam bai thi
-- AOP = Camera giam sat (chay doc lap, khong anh huong bai thi)
+Ví dụ thực tế:
+- Business logic = Làm bài thi
+- AOP = Camera giám sát (chạy độc lập, không ảnh hưởng bài thi)
 ```
 
-## Van de AOP giai quyet
-**KHONG** co AOP - code logging tran ngap khap noi:
+## Vấn đề AOP giải quyết
+**KHÔNG** có AOP - code logging tràn ngập khắp nơi:
 ```java
 public class OrderService {
     public void createOrder(Order order) {
-        log.info("START createOrder");        // lap lai
-        long start = System.currentTimeMillis(); // lap lai
+        log.info("START createOrder");        // lặp lại
+        long start = System.currentTimeMillis(); // lặp lại
         
         // === Business logic ===
         orderRepo.save(order);
         
-        log.info("END createOrder, time: " +   // lap lai
+        log.info("END createOrder, time: " +   // lặp lại
             (System.currentTimeMillis() - start));
     }
     
     public void cancelOrder(Long id) {
-        log.info("START cancelOrder");         // LAP LAI!
+        log.info("START cancelOrder");         // LẶP LẠI!
         long start = System.currentTimeMillis();
         
         // === Business logic ===
@@ -42,9 +42,9 @@ public class OrderService {
 }
 ```
 
-**CO** AOP - code sach se:
+**CÓ** AOP - code sạch sẽ:
 ```java
-// Business logic - SACH, chi co logic thoi
+// Business logic - SẠCH, chỉ có logic thôi
 @Service
 public class OrderService {
     public void createOrder(Order order) {
@@ -55,7 +55,7 @@ public class OrderService {
     }
 }
 
-// Logging tach rieng thanh 1 Aspect
+// Logging tách riêng thành 1 Aspect
 @Aspect
 @Component
 public class LoggingAspect {
@@ -65,7 +65,7 @@ public class LoggingAspect {
         log.info("START " + method);
         long start = System.currentTimeMillis();
         
-        Object result = joinPoint.proceed(); // goi method goc
+        Object result = joinPoint.proceed(); // gọi method gốc
         
         log.info("END " + method + ", time: " + 
             (System.currentTimeMillis() - start));
@@ -74,26 +74,26 @@ public class LoggingAspect {
 }
 ```
 
-## Cac khai niem chinh trong AOP
+## Các khái niệm chính trong AOP
 
-| Khai niem | Giai thich | Vi du |
+| Khái niệm | Giải thích | Ví dụ |
 |-----------|-----------|-------|
-| **Aspect** | Module chua logic cat ngang | LoggingAspect, SecurityAspect |
-| **Join Point** | Diem ma Aspect co the chen vao | Khi method duoc goi |
-| **Advice** | Hanh dong thuc hien | @Before, @After, @Around |
-| **Pointcut** | Bieu thuc xac dinh Join Point nao | `execution(* com.example.*.*(..))` |
-| **Weaving** | Qua trinh ket hop Aspect vao code | Compile-time, Runtime |
+| **Aspect** | Module chứa logic cắt ngang | LoggingAspect, SecurityAspect |
+| **Join Point** | Điểm mà Aspect có thể chèn vào | Khi method được gọi |
+| **Advice** | Hành động thực hiện | @Before, @After, @Around |
+| **Pointcut** | Biểu thức xác định Join Point nào | `execution(* com.example.*.*(..))` |
+| **Weaving** | Quá trình kết hợp Aspect vào code | Compile-time, Runtime |
 
-## Cac loai Advice
+## Các loại Advice
 ```
-@Before  ──> [METHOD] ──> @AfterReturning (thanh cong)
-                      ──> @AfterThrowing  (co exception)
-                      ──> @After          (luon chay)
-@Around  ──> BAO QUANH method (manh nhat)
+@Before  ──> [METHOD] ──> @AfterReturning (thành công)
+                      ──> @AfterThrowing  (có exception)
+                      ──> @After          (luôn chạy)
+@Around  ──> BAO QUANH method (mạnh nhất)
 ```
 
-## Diem quan trong nho phong van
-1. AOP giup **tach** cross-cutting concerns ra khoi business logic
-2. Spring AOP dung **Proxy pattern** (Runtime weaving)
-3. Cac use case pho bien: **Logging, Security, Transaction, Caching**
-4. `@EnableAspectJAutoProxy` de bat AOP trong Spring
+## Điểm quan trọng nhớ phỏng vấn
+1. AOP giúp **tách** cross-cutting concerns ra khỏi business logic
+2. Spring AOP dùng **Proxy pattern** (Runtime weaving)
+3. Các use case phổ biến: **Logging, Security, Transaction, Caching**
+4. `@EnableAspectJAutoProxy` để bật AOP trong Spring

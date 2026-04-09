@@ -1,30 +1,30 @@
 # Q29: Describe some of the standard Spring events
 > **Dịch:** Mô tả một số sự kiện (event) tiêu chuẩn của Spring
 
-## Tra loi ngan gon
-> Spring cung cap cac **built-in event** de thong bao ve trang thai cua ApplicationContext: **ContextRefreshedEvent, ContextStartedEvent, ContextStoppedEvent, ContextClosedEvent, RequestHandledEvent**.
+## Trả lời ngắn gọn
+> Spring cung cấp các **built-in event** để thông báo về trạng thái của ApplicationContext: **ContextRefreshedEvent, ContextStartedEvent, ContextStoppedEvent, ContextClosedEvent, RequestHandledEvent**.
 
-## Cach nho
+## Cách nhớ
 ```
-Spring Events giong nhu Thong bao cua nha truong:
-- Refreshed  = "Truong da san sang!" (khoi dong xong)
-- Started    = "Bat dau hoc!"
-- Stopped    = "Nghi giai lao!"
-- Closed     = "Het gio, ve nha!"
+Spring Events giống như Thông báo của nhà trường:
+- Refreshed  = "Trường đã sẵn sàng!" (khởi động xong)
+- Started    = "Bắt đầu học!"
+- Stopped    = "Nghỉ giải lao!"
+- Closed     = "Hết giờ, về nhà!"
 ```
 
-## Cac Standard Events
+## Các Standard Events
 
-| Event | Khi nao | Mo ta |
+| Event | Khi nào | Mô tả |
 |-------|---------|-------|
-| **ContextRefreshedEvent** | Context khoi tao hoac refresh xong | Tat ca bean da san sang |
-| **ContextStartedEvent** | Goi `context.start()` | Context duoc start |
-| **ContextStoppedEvent** | Goi `context.stop()` | Context bi stop |
-| **ContextClosedEvent** | Goi `context.close()` | Context bi dong (destroy bean) |
-| **RequestHandledEvent** | HTTP request xu ly xong | Chi trong web app |
-| **ServletRequestHandledEvent** | Servlet request xu ly xong | Them thong tin servlet |
+| **ContextRefreshedEvent** | Context khởi tạo hoặc refresh xong | Tất cả bean đã sẵn sàng |
+| **ContextStartedEvent** | Gọi `context.start()` | Context được start |
+| **ContextStoppedEvent** | Gọi `context.stop()` | Context bị stop |
+| **ContextClosedEvent** | Gọi `context.close()` | Context bị đóng (destroy bean) |
+| **RequestHandledEvent** | HTTP request xử lý xong | Chỉ trong web app |
+| **ServletRequestHandledEvent** | Servlet request xử lý xong | Thêm thông tin servlet |
 
-## Vi du: Lang nghe Standard Events
+## Ví dụ: Lắng nghe Standard Events
 
 ```java
 @Component
@@ -32,23 +32,23 @@ public class AppEventListener {
 
     @EventListener
     public void onContextRefreshed(ContextRefreshedEvent event) {
-        System.out.println("Context da khoi tao xong!");
-        System.out.println("Thoi diem: " + event.getTimestamp());
-        // Dung de: load cache, warm up, kiem tra config
+        System.out.println("Context đã khởi tạo xong!");
+        System.out.println("Thời điểm: " + event.getTimestamp());
+        // Dùng để: load cache, warm up, kiểm tra config
     }
 
     @EventListener
     public void onContextClosed(ContextClosedEvent event) {
-        System.out.println("Context dang dong...");
-        // Dung de: giai phong resource, luu state
+        System.out.println("Context đang đóng...");
+        // Dùng để: giải phóng resource, lưu state
     }
 }
 ```
 
-## Custom Event (tu tao)
+## Custom Event (tự tạo)
 
 ```java
-// 1. Dinh nghia Event
+// 1. Định nghĩa Event
 public class OrderCreatedEvent {
     private final Order order;
     public OrderCreatedEvent(Order order) { this.order = order; }
@@ -76,7 +76,7 @@ public class NotificationListener {
     }
 }
 
-// 4. Async listener (chay tren thread khac)
+// 4. Async listener (chạy trên thread khác)
 @Component
 public class AnalyticsListener {
     @Async
@@ -87,8 +87,8 @@ public class AnalyticsListener {
 }
 ```
 
-## Diem quan trong nho phong van
-1. **ContextRefreshedEvent** = Context da san sang (thuong dung nhat)
-2. Dung `@EventListener` de lang nghe (thay cho implement ApplicationListener)
-3. Custom event **khong can** extend ApplicationEvent (tu Spring 4.2)
-4. `@Async` + `@EventListener` = xu ly **bat dong bo**
+## Điểm quan trọng nhớ phỏng vấn
+1. **ContextRefreshedEvent** = Context đã sẵn sàng (thường dùng nhất)
+2. Dùng `@EventListener` để lắng nghe (thay cho implement ApplicationListener)
+3. Custom event **không cần** extend ApplicationEvent (từ Spring 4.2)
+4. `@Async` + `@EventListener` = xử lý **bất đồng bộ**

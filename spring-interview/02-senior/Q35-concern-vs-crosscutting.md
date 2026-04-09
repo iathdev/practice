@@ -1,16 +1,16 @@
 # Q35: What is the difference between concern and cross-cutting concern in Spring AOP?
 > **Dịch:** Sự khác nhau giữa Concern và Cross-cutting Concern trong Spring AOP là gì?
 
-## Tra loi ngan gon
-> **Concern** = chuc nang cu the cua 1 module (vd: xu ly order). **Cross-cutting concern** = chuc nang **cat ngang** nhieu module (vd: logging, security, transaction). AOP xu ly cross-cutting concern.
+## Trả lời ngắn gọn
+> **Concern** = chức năng cụ thể của 1 module (vd: xử lý order). **Cross-cutting concern** = chức năng **cắt ngang** nhiều module (vd: logging, security, transaction). AOP xử lý cross-cutting concern.
 
-## Cach nho
+## Cách nhớ
 ```
-Concern = Mon hoc (Toan, Van, Anh) - moi mon rieng biet
-Cross-cutting = Diem danh - ap dung cho TAT CA mon hoc
+Concern = Môn học (Toán, Văn, Anh) - mỗi môn riêng biệt
+Cross-cutting = Điểm danh - áp dụng cho TẤT CẢ môn học
 ```
 
-## Minh hoa
+## Minh họa
 
 ```
                   UserService    OrderService    PaymentService
@@ -22,47 +22,47 @@ CONCERN           | findUser  |  | createOrder|  | charge    |
 CROSS-CUTTING  ========|==============|===============|========  Logging
 CONCERN        ========|==============|===============|========  Security
                ========|==============|===============|========  Transaction
-               (cat ngang TAT CA services)
+               (cắt ngang TẤT CẢ services)
 ```
 
-## Vi du cu the
+## Ví dụ cụ thể
 
-### Concern (business logic rieng)
+### Concern (business logic riêng)
 ```java
 @Service
 public class OrderService {
-    // Concern: chi xu ly ORDER
+    // Concern: chỉ xử lý ORDER
     public Order createOrder(OrderDto dto) { /* ... */ }
     public void cancelOrder(Long id) { /* ... */ }
 }
 
 @Service
 public class UserService {
-    // Concern: chi xu ly USER
+    // Concern: chỉ xử lý USER
     public User register(UserDto dto) { /* ... */ }
     public User findById(Long id) { /* ... */ }
 }
 ```
 
-### Cross-cutting concern (cat ngang nhieu module)
+### Cross-cutting concern (cắt ngang nhiều module)
 ```java
-// Logging - can o MOI service
-// Security - can o MOI service
-// Transaction - can o MOI service
+// Logging - cần ở MỌI service
+// Security - cần ở MỌI service
+// Transaction - cần ở MỌI service
 
-// KHONG dung AOP: phai lap lai code o moi noi
+// KHÔNG dùng AOP: phải lặp lại code ở mọi nơi
 @Service
 public class OrderService {
     public Order createOrder(OrderDto dto) {
-        log.info("Creating order...");       // Logging - LAP LAI
-        checkPermission();                   // Security - LAP LAI
-        beginTransaction();                  // Transaction - LAP LAI
+        log.info("Creating order...");       // Logging - LẶP LẠI
+        checkPermission();                   // Security - LẶP LẠI
+        beginTransaction();                  // Transaction - LẶP LẠI
         // business logic
         commitTransaction();
     }
 }
 
-// DUNG AOP: tach rieng, ap dung tu dong
+// DÙNG AOP: tách riêng, áp dụng tự động
 @Aspect
 @Component
 public class LoggingAspect {
@@ -71,10 +71,10 @@ public class LoggingAspect {
         log.info("Calling: " + jp.getSignature());
     }
 }
-// -> Logging tu dong ap dung cho TAT CA service
+// -> Logging tự động áp dụng cho TẤT CẢ service
 ```
 
-## Cac cross-cutting concern pho bien
+## Các cross-cutting concern phổ biến
 
 | Cross-cutting concern | Spring implementation |
 |---|---|
@@ -86,8 +86,8 @@ public class LoggingAspect {
 | **Validation** | @Valid, Bean Validation |
 | **Monitoring** | Spring Actuator, Micrometer |
 
-## Diem quan trong nho phong van
-1. **Concern** = logic rieng cua 1 module
-2. **Cross-cutting** = logic **chung** cat ngang nhieu module
-3. AOP giup **tach** cross-cutting concern ra khoi business logic
-4. Ket qua: code **sach**, **de bao tri**, **khong lap lai**
+## Điểm quan trọng nhớ phỏng vấn
+1. **Concern** = logic riêng của 1 module
+2. **Cross-cutting** = logic **chung** cắt ngang nhiều module
+3. AOP giúp **tách** cross-cutting concern ra khỏi business logic
+4. Kết quả: code **sạch**, **dễ bảo trì**, **không lặp lại**
