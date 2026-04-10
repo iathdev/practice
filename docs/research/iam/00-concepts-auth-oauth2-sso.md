@@ -291,15 +291,26 @@ Ví dụ: Web app truyền thống (PHP, Rails, Spring MVC)
 Flow:
   1. Client redirect user → Authorization Server /authorize
   2. User login + consent
-  3. Authorization Server redirect về client với CODE
+  3. Authorization Server SINH authorization code (random string)
+     → Lưu mapping: code → { client_id, redirect_uri, scope, expire }
+     → Redirect về client kèm code trong URL
   4. Client (backend) gửi CODE + client_secret → /token
   5. Authorization Server trả access_token
 
+Authorization Code là gì?
+  → Random string do AUTH SERVER sinh ra (KHÔNG phải client tạo)
+  → "Biên nhận tạm" — chứng minh user đã login + consent xong
+  → KHÔNG phải token — không dùng gọi API được
+  → Dùng ĐÚNG 1 LẦN → exchange xong Auth Server xóa
+  → Expire cực nhanh: 30-60 giây
+  → Ví dụ: ?code=SplxlOBeZQQYbYS6WxSbIA
+
 Tại sao 2 bước (code → token)?
-  → Code đi qua browser (front-channel) → có thể bị intercept
-  → Token exchange qua backend (back-channel) → an toàn
+  → Code đi qua browser (front-channel, URL) → có thể bị thấy
+  → Token exchange qua backend (back-channel, POST body) → an toàn
   → Code chỉ dùng 1 lần, expire nhanh (60 giây)
   → Dù code bị steal → không có client_secret → không exchange được
+  → Token KHÔNG BAO GIỜ lộ qua URL
 
 ┌──────────┐       ┌───────────┐       ┌──────────────┐
 │ Browser   │       │ Backend   │       │ Auth Server  │
@@ -336,7 +347,78 @@ Vấn đề: SPA chạy trong browser → source code public → KHÔNG giữ đ
   → SPA không có secret → dùng gì?
 
 PKCE (Proof Key for Code Exchange) thay thế secret:
-  → Xem chi tiết ở mục 5
+  → Client tự tạo 1 cặp (code_verifier, code_challenge) mỗi lần login
+  → Dùng code_challenge chứng minh "tôi là người khởi tạo request"
+  → Chi tiết cơ chế xem mục 5
+
+Flow:
+  1. Client tạo code_verifier (random) + code_challenge = SHA256(verifier)
+  2. Client redirect user → /authorize kèm code_challenge
+  3. User login + consent
+  4. Auth Server redirect về client với CODE
+  5. Client gửi CODE + code_verifier → /token (KHÔNG cần client_secret)
+  6. Auth Server: SHA256(code_verifier) == code_challenge đã lưu? → Match → issue token
+
+┌──────────┐                              ┌──────────────┐
+│ SPA/Mobile│                              │ Auth Server  │
+│           │                              │              │
+│ 1. Tạo:  │                              │              │
+│  verifier │                              │              │
+│  = random │                              │              │
+│  challenge│                              │              │
+│  = SHA256 │                              │              │
+│  (verifier)                              │              │
+│           │                              │              │
+│ 2. GET /authorize                        │              │
+│    ?code_challenge=xxx                   │              │
+│    &code_challenge_method=S256           │              │
+│    &client_id=spa_app                    │              │
+│    &redirect_uri=.../callback            │              │
+│    &scope=openid profile                 │              │
+│    &state=csrf_random                    │              │
+│──────────────────────────────────────────▶              │
+│           │                              │ 3. Login page│
+│           │                              │    User login│
+│           │                              │    + consent │
+│           │                              │              │
+│           │                              │ 4. Lưu:     │
+│           │                              │  code → challenge
+│           │                              │              │
+│ 5. Redirect + code + state              │              │
+│◀─────────────────────────────────────────│              │
+│           │                              │              │
+│ 6. Verify state                          │              │
+│           │                              │              │
+│ 7. POST /token                           │              │
+│    { code, code_verifier,                │              │
+│      client_id, redirect_uri }           │              │
+│──────────────────────────────────────────▶              │
+│           │                              │              │
+│           │                              │ 8. Verify:   │
+│           │                              │  SHA256(verifier)
+│           │                              │  == challenge?
+│           │                              │  → Match!    │
+│           │                              │              │
+│ 9. { access_token, id_token }            │              │
+│◀─────────────────────────────────────────│              │
+└──────────┘                              └──────────────┘
+
+So sánh với Authorization Code thường:
+  ┌────────────────────────────┬──────────────────────────────────┐
+  │ Authorization Code         │ Authorization Code + PKCE        │
+  ├────────────────────────────┼──────────────────────────────────┤
+  │ Exchange: code + secret    │ Exchange: code + code_verifier   │
+  │ Secret cố định (hardcode)  │ Verifier tạo MỚI mỗi lần login │
+  │ Secret lộ = compromised    │ Verifier lộ = chỉ 1 session     │
+  │ Cần backend giữ secret     │ KHÔNG cần backend               │
+  │ Server-side app            │ SPA / Mobile / Public client    │
+  └────────────────────────────┴──────────────────────────────────┘
+
+Tại sao PKCE an toàn hơn Implicit (deprecated)?
+  Implicit: token trả thẳng qua URL → lộ trong browser history, log
+  PKCE: token trả qua POST response → không lộ trong URL
+  PKCE: có code_verifier → chứng minh client identity
+  Implicit: không chứng minh được gì
 ```
 
 ### 4.3 Client Credentials (service-to-service)

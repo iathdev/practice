@@ -1,0 +1,2139 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mock Interview - Deep Dive vào Dự Án Thực Tế | Thái Đông</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.8;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            color: #e0e0e0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        h1 {
+            text-align: center;
+            color: #ffd700;
+            padding: 40px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            margin-bottom: 30px;
+            border: 2px solid rgba(255,215,0,0.3);
+            box-shadow: 0 10px 30px rgba(255,215,0,0.2);
+        }
+        h1 .subtitle {
+            display: block;
+            font-size: 0.4em;
+            color: #00d9ff;
+            margin-top: 15px;
+            font-weight: normal;
+        }
+        h1 .candidate {
+            display: block;
+            font-size: 0.45em;
+            color: #50fa7b;
+            margin-top: 8px;
+        }
+
+        .timeline {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255,215,0,0.3);
+        }
+        .timeline h3 {
+            color: #ffd700;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.3em;
+        }
+        .timeline-item {
+            display: flex;
+            gap: 20px;
+            margin: 15px 0;
+            padding: 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            border-left: 4px solid #00d9ff;
+        }
+        .timeline-date {
+            color: #ffd700;
+            font-weight: bold;
+            min-width: 150px;
+            font-size: 0.95em;
+        }
+        .timeline-content h4 { color: #00d9ff; margin-bottom: 8px; }
+        .timeline-content ul { margin-left: 20px; font-size: 0.95em; }
+        .timeline-content li { margin: 5px 0; color: #ccc; }
+
+        section {
+            background: rgba(255,255,255,0.03);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        h2 {
+            color: #ffd700;
+            border-bottom: 3px solid rgba(255,215,0,0.5);
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 1.8em;
+        }
+
+        .project-header {
+            background: linear-gradient(135deg, rgba(102,126,234,0.2), rgba(118,75,162,0.2));
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border: 2px solid rgba(102,126,234,0.4);
+        }
+        .project-header h3 { color: #00d9ff; font-size: 1.5em; margin-bottom: 15px; }
+        .project-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .meta-item {
+            background: rgba(0,0,0,0.3);
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 3px solid #ffd700;
+        }
+        .meta-label { color: #888; font-size: 0.85em; margin-bottom: 5px; }
+        .meta-value { color: #fff; font-weight: 500; }
+
+        .qa-block {
+            margin-bottom: 35px;
+            padding: 25px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 15px;
+            border-left: 5px solid #00d9ff;
+        }
+
+        .interviewer, .candidate-response {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .interviewer .avatar {
+            width: 50px; height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; font-weight: bold; flex-shrink: 0;
+            box-shadow: 0 5px 15px rgba(102,126,234,0.4);
+        }
+        .candidate-response .avatar {
+            width: 50px; height: 50px;
+            background: linear-gradient(135deg, #50fa7b 0%, #2ecc71 100%);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; font-weight: bold; flex-shrink: 0;
+            box-shadow: 0 5px 15px rgba(80,250,123,0.4);
+        }
+        .interviewer .bubble {
+            background: rgba(102,126,234,0.2);
+            padding: 18px 22px;
+            border-radius: 18px; border-top-left-radius: 5px;
+            flex: 1;
+            border: 1px solid rgba(102,126,234,0.3);
+        }
+        .candidate-response .bubble {
+            background: rgba(80,250,123,0.15);
+            padding: 18px 22px;
+            border-radius: 18px; border-top-left-radius: 5px;
+            flex: 1;
+            border: 1px solid rgba(80,250,123,0.3);
+        }
+        .name {
+            font-weight: bold; font-size: 0.9em;
+            margin-bottom: 10px;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .interviewer .name { color: #667eea; }
+        .candidate-response .name { color: #50fa7b; }
+        .bubble p { margin: 12px 0; line-height: 1.7; }
+        .bubble ul { margin: 12px 0 12px 25px; }
+        .bubble li { margin: 8px 0; }
+        .bubble strong { color: #ffd700; }
+
+        pre {
+            background: #1a1a2e;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin: 15px 0;
+            border: 1px solid rgba(0,217,255,0.3);
+            font-size: 0.88em;
+            line-height: 1.6;
+        }
+        code {
+            background: rgba(0,0,0,0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #50fa7b;
+        }
+        pre code { background: none; padding: 0; }
+
+        .architecture-diagram {
+            background: #0f0c29;
+            padding: 25px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border: 2px solid rgba(0,217,255,0.3);
+            font-family: monospace;
+            color: #00d9ff;
+            overflow-x: auto;
+            white-space: pre;
+        }
+
+        .tech-stack {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .tech-item {
+            background: rgba(0,217,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(0,217,255,0.3);
+            text-align: center;
+        }
+        .tech-item .icon { font-size: 1.8em; margin-bottom: 8px; }
+        .tech-item .name { font-weight: bold; color: #00d9ff; margin-bottom: 5px; font-size: 0.95em; }
+        .tech-item .desc { font-size: 0.82em; color: #888; }
+
+        .challenge-box {
+            background: rgba(255,107,107,0.1);
+            border: 2px solid rgba(255,107,107,0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .challenge-box h4 { color: #ff6b6b; margin-bottom: 12px; font-size: 1.1em; }
+
+        .solution-box {
+            background: rgba(80,250,123,0.1);
+            border: 2px solid rgba(80,250,123,0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .solution-box h4 { color: #50fa7b; margin-bottom: 12px; font-size: 1.1em; }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .metric-card {
+            background: linear-gradient(135deg, rgba(255,215,0,0.1), rgba(255,215,0,0.05));
+            padding: 18px;
+            border-radius: 12px;
+            border: 2px solid rgba(255,215,0,0.3);
+            text-align: center;
+        }
+        .metric-value { font-size: 1.8em; font-weight: bold; color: #ffd700; margin-bottom: 6px; }
+        .metric-label { color: #888; font-size: 0.85em; }
+
+        .tip {
+            background: rgba(80,250,123,0.1);
+            border-left: 4px solid #50fa7b;
+            padding: 18px; border-radius: 8px; margin: 20px 0;
+        }
+        .tip strong { color: #50fa7b; }
+
+        .warning {
+            background: rgba(255,184,108,0.1);
+            border-left: 4px solid #ffb86c;
+            padding: 18px; border-radius: 8px; margin: 20px 0;
+        }
+        .warning strong { color: #ffb86c; }
+
+        .deep-dive {
+            background: rgba(189,147,249,0.1);
+            border: 2px dashed rgba(189,147,249,0.4);
+            padding: 25px; border-radius: 15px; margin: 25px 0;
+        }
+        .deep-dive h4 { color: #bd93f9; margin-bottom: 15px; font-size: 1.2em; }
+
+        nav {
+            background: rgba(0,0,0,0.4);
+            padding: 18px; border-radius: 12px; margin-bottom: 30px;
+            position: sticky; top: 10px; z-index: 100;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,215,0,0.3);
+        }
+        nav a {
+            display: inline-block;
+            padding: 8px 16px; margin: 4px;
+            background: rgba(255,215,0,0.2);
+            color: #ffd700; text-decoration: none;
+            border-radius: 25px; font-size: 13px;
+            border: 1px solid rgba(255,215,0,0.4);
+            transition: all 0.3s; font-weight: 500;
+        }
+        nav a:hover {
+            background: rgba(255,215,0,0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255,215,0,0.3);
+        }
+
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        th { background: rgba(255,215,0,0.1); color: #ffd700; font-weight: 600; }
+        tr:hover { background: rgba(255,255,255,0.05); }
+
+        @media (max-width: 768px) {
+            .tech-stack { grid-template-columns: 1fr 1fr; }
+            .metrics { grid-template-columns: 1fr 1fr; }
+            .project-meta { grid-template-columns: 1fr; }
+            .interviewer, .candidate-response { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <h1>
+        🎯 Mock Interview — Deep Dive Edition
+        <span class="subtitle">Phỏng vấn tập trung vào Dự án Thực tế | ~90 phút</span>
+        <span class="candidate">Ứng viên: Thái Đông &nbsp;|&nbsp; EdTech · Enterprise · Digital Transformation</span>
+    </h1>
+
+    <nav>
+        <a href="#intro">Giới thiệu</a>
+        <a href="#prep">PREP — Exam Platform</a>
+        <a href="#ghtk">GHTK — Enterprise</a>
+        <a href="#tomosia">Tomosia — Digital Transformation</a>
+        <a href="#challenges">Challenges & Growth</a>
+        <a href="#system-design">System Design</a>
+    </nav>
+
+    <!-- TIMELINE -->
+    <div class="timeline">
+        <h3>📅 Career Timeline</h3>
+        <div class="timeline-item">
+            <div class="timeline-date">09/2025 – Hiện tại</div>
+            <div class="timeline-content">
+                <h4>🎓 PREP Technology JSC — Backend Developer (PHP/Go)</h4>
+                <ul>
+                    <li>Nền tảng thi trực tuyến B2B quy mô lớn</li>
+                    <li>Dịch vụ chống gian lận real-time (Go + Redis)</li>
+                    <li>Kiến trúc event-driven: Laravel (quản lý) + Go (thi cử)</li>
+                    <li>Learning Profile service với Kafka event streams</li>
+                </ul>
+            </div>
+        </div>
+        <div class="timeline-item">
+            <div class="timeline-date">10/2024 – 09/2025</div>
+            <div class="timeline-content">
+                <h4>📦 GHTK — Web Engineer (Java/PHP)</h4>
+                <ul>
+                    <li>Nền tảng doanh nghiệp GAM & HRM</li>
+                    <li>Domain-Driven Design + Hexagonal Architecture</li>
+                    <li>Dịch vụ IAM với OAuth2</li>
+                    <li>Xử lý deadlock production, tối ưu query high-concurrency</li>
+                </ul>
+            </div>
+        </div>
+        <div class="timeline-item">
+            <div class="timeline-date">06/2020 – 10/2024</div>
+            <div class="timeline-content">
+                <h4>🎢 Tomosia Việt Nam — Software Engineer (Java/PHP)</h4>
+                <ul>
+                    <li><strong>Số hoá toàn diện chuỗi công viên giải trí</strong> — bán vé online, QR check-in, quản lý capacity real-time, vận hành sự kiện trên AWS</li>
+                    <li>Data collection pipeline: AWS Lambda + SQS + OpenSearch + Puppeteer</li>
+                    <li>Backend e-commerce: RESTful APIs với Spring Boot & Laravel</li>
+                    <li>Monitoring & observability với CloudWatch</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== PART 1: INTRODUCTION ===== -->
+    <section id="intro">
+        <h2>👋 Phần 1 — Giới thiệu & Context Setting (10 phút)</h2>
+
+        <div class="qa-block">
+            <div class="interviewer">
+                <div class="avatar">👨‍💼</div>
+                <div class="bubble">
+                    <div class="name">Interviewer (Tech Lead)</div>
+                    <p>Chào Đông, cảm ơn bạn đã tham gia buổi phỏng vấn. Mình thấy bạn có kinh nghiệm khá đa dạng — từ EdTech (PREP), Enterprise systems (GHTK) đến Digital Transformation (Tomosia). Mỗi domain có technical challenges rất khác nhau. Bạn có thể share tổng quan và điều gì khiến bạn phát triển nhiều nhất qua từng giai đoạn không?</p>
+                </div>
+            </div>
+
+            <div class="candidate-response">
+                <div class="avatar">🧑‍💻</div>
+                <div class="bubble">
+                    <div class="name">Thái Đông (Ứng viên)</div>
+                    <p>Dạ cảm ơn anh/chị. Đúng là 3 giai đoạn cho em những góc nhìn rất khác nhau về backend development:</p>
+
+                    <p><strong>🎢 Tomosia (4 năm — 2020–2024):</strong></p>
+                    <ul>
+                        <li><strong>Dự án flagship — Ticket Booking Platform:</strong> Xây dựng hệ thống đặt vé trực tuyến cho chuỗi công viên giải trí, bao gồm inventory management, payment integration (webhook + polling), QR check-in, và quản lý vận hành. Đây là bài toán kết hợp nhiều thách thức kỹ thuật khác nhau trong cùng một hệ thống</li>
+                        <li><strong>Inventory & Concurrency:</strong> Thiết kế inventory model tách 3 trạng thái <code>total_capacity / reserved / booked</code> để phân biệt chỗ đang giữ tạm và đã xác nhận. Dùng Redis Lua script (atomic pre-check) kết hợp DB optimistic lock để chống oversell dưới high concurrency — reject sớm tại Redis, chỉ những request hợp lệ mới đụng đến database</li>
+                        <li><strong>Payment Reliability:</strong> Implement Dual Confirmation (webhook callback + gateway polling job) để giải quyết bài toán "tiền trừ nhưng vé không có" khi callback bị miss. Dùng Transactional Outbox pattern đảm bảo event không bao giờ bị mất khi confirm booking và sinh vé</li>
+                        <li><strong>AWS Data Pipeline:</strong> Lambda + SQS + OpenSearch + Puppeteer để thu thập và index dữ liệu sản phẩm; monitoring với CloudWatch</li>
+                    </ul>
+
+                    <p><strong>📦 GHTK (1 năm — 2024–2025):</strong></p>
+                    <ul>
+                        <li><strong>Domain:</strong> Enterprise platforms — GAM, HRM nội bộ</li>
+                        <li><strong>Thách thức cốt lõi:</strong> Maintainability và scalability của hệ thống high-concurrency</li>
+                        <li><strong>Điểm nổi bật:</strong> Áp dụng DDD + Hexagonal Architecture để cải thiện codebase, xử lý production deadlocks</li>
+                    </ul>
+
+                    <p><strong>🎓 PREP (hiện tại — 2025):</strong></p>
+                    <ul>
+                        <li><strong>Domain:</strong> EdTech — nền tảng thi tiếng Anh B2B</li>
+                        <li><strong>Thách thức cốt lõi:</strong> Real-time processing và system reliability khi hàng nghìn thí sinh thi cùng lúc</li>
+                        <li><strong>Điểm nổi bật:</strong> Xây dựng anti-cheating service bằng Go, event-driven architecture để tách biệt exam domain và management domain</li>
+                    </ul>
+
+                    <p><strong>Điểm chung:</strong> Mỗi giai đoạn em đều phải đối mặt với câu hỏi <em>"làm sao để hệ thống chạy ổn định dưới áp lực"</em> — dù là áp lực từ traffic cao, business logic phức tạp, hay yêu cầu real-time.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== PART 2: PREP ===== -->
+    <section id="prep">
+        <h2>🎓 Phần 2 — PREP: Exam Platform & Anti-Cheating Deep Dive (25 phút)</h2>
+
+        <div class="project-header">
+            <h3>🏫 PREP Technology — Nền tảng thi trực tuyến B2B</h3>
+            <p style="color:#ccc; margin-top:10px;">Hệ thống thi trực tuyến quy mô lớn với anti-cheating real-time, phục vụ hàng nghìn thí sinh đồng thời</p>
+            <div class="project-meta">
+                <div class="meta-item"><div class="meta-label">Thời gian</div><div class="meta-value">09/2025 – Hiện tại</div></div>
+                <div class="meta-item"><div class="meta-label">Vai trò</div><div class="meta-value">Backend Developer (PHP/Go)</div></div>
+                <div class="meta-item"><div class="meta-label">Kiến trúc</div><div class="meta-value">Event-Driven, Multi-service</div></div>
+                <div class="meta-item"><div class="meta-label">Thách thức chính</div><div class="meta-value">Concurrent large-scale online exams</div></div>
+            </div>
+        </div>
+
+        <div class="tech-stack">
+            <div class="tech-item"><div class="icon">🐹</div><div class="name">Go (Exam Domain)</div><div class="desc">Anti-cheating, high-perf services</div></div>
+            <div class="tech-item"><div class="icon">🐘</div><div class="name">Laravel (Mgmt)</div><div class="desc">Admin, khóa học, quản lý người dùng</div></div>
+            <div class="tech-item"><div class="icon">⚡</div><div class="name">Redis</div><div class="desc">Event buffer, caching</div></div>
+            <div class="tech-item"><div class="icon">📨</div><div class="name">Kafka</div><div class="desc">Event streaming, Learning Profile</div></div>
+            <div class="tech-item"><div class="icon">🐘</div><div class="name">PostgreSQL</div><div class="desc">Primary data store</div></div>
+            <div class="tech-item"><div class="icon">🐳</div><div class="name">Docker</div><div class="desc">Containerization</div></div>
+        </div>
+
+        <div class="architecture-diagram">
+                              Tầng Client
+     Trình duyệt (Thí sinh)    Admin Portal      Partner B2B
+             │                      │                 │
+             └──────────────────────┴─────────────────┘
+                                    │
+                          API Gateway / Load Balancer
+                                    │
+               ┌────────────────────┼────────────────────┐
+               │                    │                    │
+       ┌───────┴──────┐   ┌─────────┴───────┐   ┌───────┴──────────┐
+       │ Exam Service │   │ Management Svc  │   │ Learning Profile │
+       │    (Go)      │   │   (Laravel)     │   │   Service (Go)   │
+       │              │   │                 │   │                  │
+       │ - Bắt đầu thi│   │ - Khóa học      │   │ - Tổng hợp hoạt  │
+       │ - Nộp bài    │   │ - Người dùng    │   │   động học tập   │
+       │ - Bộ đếm giờ │   │ - B2B config    │   │ - Tiến độ        │
+       │ - Câu hỏi    │   │ - Báo cáo       │   │ - Cá nhân hóa    │
+       └───────┬──────┘   └─────────┬───────┘   └───────┬──────────┘
+               │                    │                    │
+               └────────────────────┴────────────────────┘
+                                    │
+               ┌────────────────────┴────────────────────┐
+               │             Event Bus (Kafka)            │
+               │  Topics:                                 │
+               │   exam.started · exam.submitted          │
+               │   cheat.detected · score.calculated      │
+               │   learning.activity.completed            │
+               └────────┬────────────────┬───────────────┘
+                         │                │
+               ┌─────────┴──────┐  ┌──────┴──────────┐
+               │ Anti-Cheat Svc │  │ Scoring Pipeline │
+               │     (Go)       │  │    (Async)       │
+               │ - Tab switch   │  │ - Chấm tự động   │
+               │ - Focus loss   │  │ - Batch scoring  │
+               │ - Rapid submit │  │ - Ghi log        │
+               │ - Redis buffer │  │                  │
+               └────────────────┘  └──────────────────┘
+        </div>
+
+        <!-- Q1: Anti-Cheating -->
+        <div class="qa-block">
+            <div class="interviewer">
+                <div class="avatar">👨‍💼</div>
+                <div class="bubble">
+                    <div class="name">Interviewer</div>
+                    <p><strong>Q1:</strong> Anti-cheating service là phần thú vị nhất. Bạn có thể walk through flow khi một thí sinh có hành vi gian lận như tab switch hay focus loss không? Tại sao chọn Go cho service này và tại sao dùng Redis làm event buffer thay vì push thẳng lên Kafka?</p>
+                </div>
+            </div>
+
+            <div class="candidate-response">
+                <div class="avatar">🧑‍💻</div>
+                <div class="bubble">
+                    <div class="name">Thái Đông</div>
+                    <p><strong>Anti-Cheating Detection Flow:</strong></p>
+
+                    <div class="architecture-diagram">
+Trình duyệt           Go Anti-Cheat Svc     Redis (Buffer)     Kafka / Alert
+     │                        │                    │                 │
+     │ 1. EventStream         │                    │                 │
+     │   {type:"tab_switch",  │                    │                 │
+     │    examId:"E001", ts:…}│                    │                 │
+     ├───────────────────────►│                    │                 │
+     │                        │ 2. Buffer event    │                 │
+     │                        │ LPUSH cheat:E001   │                 │
+     │                        ├───────────────────►│                 │
+     │                        │                    │                 │
+     │ 3. Thêm events         │                    │                 │
+     │   (focus_loss x3,      │                    │                 │
+     │    rapid_submit x2)    │                    │                 │
+     ├───────────────────────►│                    │                 │
+     │                        ├───────────────────►│ (buffer tiếp)   │
+     │                        │                    │                 │
+     │                        │ 4. Flush (mỗi 1s)  │                 │
+     │                        │ LRANGE + analyze   │                 │
+     │                        │◄───────────────────┤                 │
+     │                        │                    │                 │
+     │                        │ 5. Đánh giá rules: │                 │
+     │                        │ - tab_switch≥3/60s │                 │
+     │                        │   → WARN           │                 │
+     │                        │ - focus_loss≥5     │                 │
+     │                        │   → FLAG           │                 │
+     │                        │                    │                 │
+     │                        │ 6. Vi phạm → Pub   │                 │
+     │                        ├────────────────────┼────────────────►│
+     │                        │   "cheat.detected" │                 │
+     │ 7. Cảnh báo real-time  │                    │                 │
+     │◄───────────────────────┤                    │                 │
+     │ "Phát hiện bất thường" │                    │                 │
+                    </div>
+
+                    <p><strong>Tại sao chọn Go?</strong></p>
+                    <ul>
+                        <li><strong>Goroutines:</strong> Mỗi exam session được xử lý trong 1 goroutine riêng. Với 5.000 thí sinh đồng thời, Go xử lý nhẹ nhàng — goroutine chỉ tốn ~2 KB stack ban đầu, so với ~1 MB của thread Java</li>
+                        <li><strong>Low latency:</strong> Anti-cheat cần xử lý event trong vòng milliseconds. Go compile thành binary, không có overhead của JVM hay PHP interpreter</li>
+                        <li><strong>Concurrency model:</strong> Channel + goroutine pattern rất phù hợp với event processing pipeline</li>
+                    </ul>
+
+                    <p><strong>Tại sao Redis làm buffer thay vì push thẳng vào Kafka?</strong></p>
+                    <ul>
+                        <li><strong>Tần suất cực cao:</strong> Mỗi thí sinh có thể gửi 10–50 events/phút (mouse movement, tab switch, keystroke pattern). Với 5.000 thí sinh = 50K–250K events/phút. Push thẳng vào Kafka tạo quá nhiều small messages, không hiệu quả</li>
+                        <li><strong>Batching:</strong> Redis buffer cho phép gom events theo exam session, flush mỗi 1–2 giây để analyze theo batch — giảm 95% message volume lên Kafka</li>
+                        <li><strong>Tốc độ:</strong> Redis LPUSH là O(1), latency ~0.1 ms. Kafka produce ~5–10 ms. Với high-frequency events, sự khác biệt này rất quan trọng</li>
+                        <li><strong>Transient data:</strong> Raw cheat events chỉ cần giữ vài phút để analyze. Không cần Kafka's durability cho data này</li>
+                    </ul>
+
+                    <p><strong>Code implementation (Go):</strong></p>
+                    <pre><code>type AntiCheatProcessor struct {
+    redisClient *redis.Client
+    kafkaWriter *kafka.Writer
+    rules       []DetectionRule
+}
+
+type CandidateEvent struct {
+    ExamID      string                 `json:"exam_id"`
+    CandidateID string                 `json:"candidate_id"`
+    EventType   string                 `json:"event_type"` // tab_switch, focus_loss, rapid_submit
+    Timestamp   time.Time              `json:"timestamp"`
+    Metadata    map[string]interface{} `json:"metadata"`
+}
+
+// Buffer event vào Redis — gọi cho mỗi event đến
+func (p *AntiCheatProcessor) BufferEvent(ctx context.Context, event CandidateEvent) error {
+    key := fmt.Sprintf("cheat:events:%s:%s", event.ExamID, event.CandidateID)
+    data, _ := json.Marshal(event)
+
+    pipe := p.redisClient.Pipeline()
+    pipe.LPush(ctx, key, data)
+    pipe.Expire(ctx, key, 5*time.Minute) // TTL — tự dọn dẹp
+    _, err := pipe.Exec(ctx)
+    return err
+}
+
+// Flush & analyze — chạy mỗi 1 giây cho mỗi exam đang active
+func (p *AntiCheatProcessor) FlushAndAnalyze(ctx context.Context, examID, candidateID string) {
+    key := fmt.Sprintf("cheat:events:%s:%s", examID, candidateID)
+
+    // Atomic: lấy toàn bộ events và xóa buffer
+    rawEvents, err := p.redisClient.LRange(ctx, key, 0, -1).Result()
+    if err != nil || len(rawEvents) == 0 {
+        return
+    }
+    p.redisClient.Del(ctx, key)
+
+    // Parse & apply detection rules
+    var events []CandidateEvent
+    for _, raw := range rawEvents {
+        var e CandidateEvent
+        json.Unmarshal([]byte(raw), &e)
+        events = append(events, e)
+    }
+
+    for _, rule := range p.rules {
+        if violation := rule.Evaluate(events); violation != nil {
+            p.publishViolation(ctx, violation)
+        }
+    }
+}
+
+// Detection rule: Tab switch frequency
+type TabSwitchRule struct {
+    MaxCount int
+    Window   time.Duration
+}
+
+func (r *TabSwitchRule) Evaluate(events []CandidateEvent) *Violation {
+    count := 0
+    cutoff := time.Now().Add(-r.Window)
+
+    for _, e := range events {
+        if e.EventType == "tab_switch" && e.Timestamp.After(cutoff) {
+            count++
+        }
+    }
+
+    if count >= r.MaxCount {
+        return &Violation{
+            Type:     "FREQUENT_TAB_SWITCH",
+            Severity: "WARNING",
+            Message:  fmt.Sprintf("%d lần tab switch trong %v", count, r.Window),
+        }
+    }
+    return nil
+}
+
+// Chỉ publish violations lên Kafka — giảm 95% message volume
+func (p *AntiCheatProcessor) publishViolation(ctx context.Context, v *Violation) {
+    data, _ := json.Marshal(v)
+    p.kafkaWriter.WriteMessages(ctx, kafka.Message{
+        Topic: "cheat.detected",
+        Key:   []byte(v.CandidateID),
+        Value: data,
+    })
+}</code></pre>
+
+                    <div class="tip">
+                        <strong>✅ Điểm hay của kiến trúc này:</strong>
+                        <ul>
+                            <li>Redis buffer hấp thu spike traffic, tránh overwhelm downstream</li>
+                            <li>Rules engine có thể thêm/sửa rule mà không cần redeploy service</li>
+                            <li>Chỉ violations mới được push lên Kafka — giảm 95% message volume so với push raw events</li>
+                            <li>Mỗi exam session được isolate — 1 session có vấn đề không ảnh hưởng session khác</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Q2: Exam Submission -->
+        <div class="qa-block">
+            <div class="interviewer">
+                <div class="avatar">👨‍💼</div>
+                <div class="bubble">
+                    <div class="name">Interviewer</div>
+                    <p><strong>Q2:</strong> Bạn dùng Laravel cho management domain và Go cho exam domain — đây là quyết định kiến trúc thú vị. Khi thí sinh bấm "Nộp bài", flow từ submission đến scoring diễn ra như thế nào? Làm sao đảm bảo không mất bài thi nếu system gặp sự cố giữa chừng?</p>
+                </div>
+            </div>
+
+            <div class="candidate-response">
+                <div class="avatar">🧑‍💻</div>
+                <div class="bubble">
+                    <div class="name">Thái Đông</div>
+                    <p><strong>Lý do tách 2 domain:</strong></p>
+                    <ul>
+                        <li><strong>Management domain (Laravel):</strong> CRUD-heavy, admin operations, report generation — phù hợp với Laravel's rapid development và Eloquent ORM</li>
+                        <li><strong>Exam domain (Go):</strong> High-concurrency, real-time, latency-sensitive — cần performance của compiled language</li>
+                        <li><strong>Communication:</strong> Event-driven qua Kafka. 2 services KHÔNG gọi trực tiếp nhau (no sync HTTP calls)</li>
+                    </ul>
+
+                    <div class="architecture-diagram">
+Thí sinh           Go Exam Service       Kafka          Scoring Pipeline    Laravel Mgmt
+   │                      │                │                    │                │
+   │ POST /exam/submit    │                │                    │                │
+   │ {examId, answers[]} │                │                    │                │
+   ├─────────────────────►│                │                    │                │
+   │                      │                │                    │                │
+   │                      │ Validate:      │                    │                │
+   │                      │ - Còn hạn thi? │                    │                │
+   │                      │ - Auth hợp lệ? │                    │                │
+   │                      │                │                    │                │
+   │                      │ Persist answers│                    │                │
+   │                      │ status=PENDING │                    │                │
+   │                      │                │                    │                │
+   │                      │ Publish event  │                    │                │
+   │                      ├───"exam.submitted"►                 │                │
+   │                      │                │                    │                │
+   │ ACK: "Đã nhận bài"  │                │                    │                │
+   │◄─────────────────────┤                │                    │                │
+   │                      │                │                    │                │
+   │                      │                │ Consume event      │                │
+   │                      │                ├───────────────────►│                │
+   │                      │                │                    │                │
+   │                      │                │                    │ Chấm bài       │
+   │                      │                │                    │ (batch)        │
+   │                      │                │                    │                │
+   │                      │                │ "score.calculated" │                │
+   │                      │                │◄───────────────────┤                │
+   │                      │                │                    │                │
+   │                      │                ├────────────────────┼───────────────►│
+   │                      │                │                    │  Cập nhật báo  │
+   │                      │                │                    │  cáo, analytics│
+                    </div>
+
+                    <p><strong>Code — Exam Submission (Go):</strong></p>
+                    <pre><code>func (h *ExamHandler) SubmitExam(w http.ResponseWriter, r *http.Request) {
+    var req SubmitExamRequest
+    json.NewDecoder(r.Body).Decode(&req)
+
+    ctx := r.Context()
+    candidateID := ctx.Value("candidateID").(string)
+
+    // 1. Validate session
+    session, err := h.examRepo.GetActiveSession(ctx, req.ExamID, candidateID)
+    if err != nil {
+        http.Error(w, "Phòng thi không tồn tại", http.StatusNotFound)
+        return
+    }
+    if time.Now().After(session.EndsAt) {
+        http.Error(w, "Hết giờ thi", http.StatusForbidden)
+        return
+    }
+
+    // 2. Persist answers — dùng UPSERT để idempotent
+    submission := &ExamSubmission{
+        ID:          uuid.New().String(),
+        ExamID:      req.ExamID,
+        CandidateID: candidateID,
+        Answers:     req.Answers,
+        Status:      "PENDING_SCORE",
+        SubmittedAt: time.Now(),
+    }
+    h.examRepo.UpsertSubmission(ctx, submission) // ON CONFLICT DO UPDATE
+
+    // 3. Publish async scoring event
+    event := ExamSubmittedEvent{
+        SubmissionID: submission.ID,
+        ExamID:       req.ExamID,
+        CandidateID:  candidateID,
+        Timestamp:    time.Now(),
+    }
+    if err := h.kafkaProducer.Publish(ctx, "exam.submitted", submission.ID, event); err != nil {
+        // Nếu Kafka fail, reconciliation job sẽ retry sau
+        log.Error("Không publish được event", "error", err)
+    }
+
+    // 4. Trả về ngay — scoring xảy ra async
+    json.NewEncoder(w).Encode(map[string]string{
+        "status":        "SUBMITTED",
+        "submission_id": submission.ID,
+        "message":       "Bài thi đã được nhận. Kết quả sẽ có trong ít phút.",
+    })
+}</code></pre>
+
+                    <div class="deep-dive">
+                        <h4>🛡️ 3 Lớp bảo vệ để không mất bài thi</h4>
+
+                        <p><strong>Lớp 1 — Persist TRƯỚC khi publish event:</strong> Answers được lưu vào DB trước (status: PENDING_SCORE). Nếu Kafka down, bài thi vẫn còn trong DB.</p>
+
+                        <p><strong>Lớp 2 — Idempotent submission (Upsert):</strong> Thí sinh có thể bấm "Nộp bài" nhiều lần (network lag, double click). Dùng <code>ON CONFLICT (exam_id, candidate_id) DO UPDATE</code> — chỉ giữ bản mới nhất.</p>
+
+                        <p><strong>Lớp 3 — Reconciliation Job:</strong></p>
+                        <pre><code>// Chạy mỗi 5 phút — tìm submissions chưa được scored
+func (j *ReconciliationJob) Run(ctx context.Context) {
+    stale, _ := j.repo.FindByStatusOlderThan(ctx, "PENDING_SCORE", 10*time.Minute)
+
+    for _, sub := range stale {
+        log.Warn("Re-publishing submission bị trễ", "id", sub.ID)
+        j.kafkaProducer.Publish(ctx, "exam.submitted", sub.ID, sub.ToEvent())
+    }
+}</code></pre>
+                    </div>
+
+                    <div class="metrics">
+                        <div class="metric-card"><div class="metric-value">0</div><div class="metric-label">Bài thi bị mất</div></div>
+                        <div class="metric-card"><div class="metric-value">&lt;200ms</div><div class="metric-label">Submission Latency</div></div>
+                        <div class="metric-card"><div class="metric-value">&lt;30s</div><div class="metric-label">Thời gian chấm bài</div></div>
+                        <div class="metric-card"><div class="metric-value">5000+</div><div class="metric-label">Thí sinh đồng thời</div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Q3: Learning Profile -->
+        <div class="qa-block">
+            <div class="interviewer">
+                <div class="avatar">👨‍💼</div>
+                <div class="bubble">
+                    <div class="name">Interviewer</div>
+                    <p><strong>Q3:</strong> Bạn có mention Learning Profile service dùng Kafka event streams để aggregate data từ nhiều services. Làm sao đảm bảo data consistency khi aggregate từ nhiều nguồn? Và nếu consumer lag, profile có bị sai không?</p>
+                </div>
+            </div>
+
+            <div class="candidate-response">
+                <div class="avatar">🧑‍💻</div>
+                <div class="bubble">
+                    <div class="name">Thái Đông</div>
+                    <p><strong>Learning Profile — Event Sourcing approach:</strong></p>
+                    <p>Learning Profile là một <strong>read-optimized aggregate</strong> được xây từ nhiều event sources:</p>
+
+                    <pre><code>// Các events mà Learning Profile consume:
+// "exam.submitted"       → Cập nhật số bài thi đã làm
+// "score.calculated"     → Cập nhật điểm trung bình, skill breakdown
+// "lesson.completed"     → Cập nhật tiến độ học tập
+// "learning.time.logged" → Cập nhật tổng thời gian học
+
+// Partition key = user_id → events của cùng 1 user được xử lý theo đúng thứ tự
+
+func (s *ProfileService) OnScoreCalculated(ctx context.Context, event ScoreCalculatedEvent) error {
+    profile, _ := s.repo.GetOrCreate(ctx, event.CandidateID)
+
+    // Idempotency: kiểm tra bài thi này đã được tính chưa
+    if s.repo.IsExamAlreadyCounted(ctx, event.CandidateID, event.ExamID) {
+        return nil // Đã xử lý rồi, bỏ qua
+    }
+
+    // Cập nhật aggregates
+    profile.TotalExams++
+    profile.AverageScore = recalculateAverage(
+        profile.AverageScore, profile.TotalExams-1, event.Score,
+    )
+
+    // Cập nhật skill breakdown
+    for skill, score := range event.SkillScores {
+        profile.SkillBreakdown[skill] = recalculateAverage(
+            profile.SkillBreakdown[skill], profile.TotalExams-1, score,
+        )
+    }
+
+    profile.LastActivityAt = event.Timestamp
+    return s.repo.Save(ctx, profile)
+}</code></pre>
+
+                    <p><strong>Chiến lược đảm bảo consistency:</strong></p>
+                    <ul>
+                        <li><strong>Idempotency:</strong> Mỗi event có unique ID. Trước khi apply, kiểm tra event này đã được xử lý chưa</li>
+                        <li><strong>Ordering:</strong> Kafka đảm bảo ordering per partition. Partition by <code>user_id</code> nên events của cùng 1 user được xử lý theo đúng thứ tự</li>
+                        <li><strong>Rebuild capability:</strong> Vì dùng events, có thể replay từ Kafka để rebuild toàn bộ profile nếu cần</li>
+                    </ul>
+
+                    <div class="warning">
+                        <strong>⚠️ Trade-off em chấp nhận:</strong>
+                        <ul>
+                            <li>Profile không real-time 100% (delay 1–5 giây) nhưng OK cho learning analytics — người dùng không cần xem điểm trung bình ngay lập tức</li>
+                            <li>Nếu consumer bị lag, profile tạm thời cũ — nhưng sẽ tự catch up khi consumer xử lý xong hàng đợi</li>
+                            <li>Storage tăng vì giữ cả events lẫn aggregate — nhưng cho phép audit và rebuild</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== PART 3: GHTK ===== -->
+    <section id="ghtk">
+        <h2>📦 Phần 3 — GHTK: Enterprise Platform & DDD Deep Dive (25 phút)</h2>
+
+        <div class="project-header">
+            <h3>🏢 GHTK — GAM & HRM Enterprise Platforms</h3>
+            <p style="color:#ccc; margin-top:10px;">Hệ thống quản lý doanh nghiệp nội bộ với DDD, Hexagonal Architecture và high-concurrency workloads</p>
+            <div class="project-meta">
+                <div class="meta-item"><div class="meta-label">Thời gian</div><div class="meta-value">10/2024 – 09/2025 (1 năm)</div></div>
+                <div class="meta-item"><div class="meta-label">Vai trò</div><div class="meta-value">Web Engineer (Java/PHP)</div></div>
+                <div class="meta-item"><div class="meta-label">Kiến trúc</div><div class="meta-value">DDD + Hexagonal Architecture</div></div>
+                <div class="meta-item"><div class="meta-label">Thách thức chính</div><div class="meta-value">Maintainability, Deadlock Resolution</div></div>
+            </div>
+        </div>
+
+        <div class="tech-stack">
+            <div class="tech-item"><div class="icon">☕</div><div class="name">Spring Boot</div><div class="desc">Core backend framework</div></div>
+            <div class="tech-item"><div class="icon">🐘</div><div class="name">Laravel</div><div class="desc">Admin & internal tools</div></div>
+            <div class="tech-item"><div class="icon">📨</div><div class="name">Kafka</div><div class="desc">Event-driven communication</div></div>
+            <div class="tech-item"><div class="icon">⚡</div><div class="name">Redis</div><div class="desc">Caching, session</div></div>
+            <div class="tech-item"><div class="icon">🐬</div><div class="name">MySQL</div><div class="desc">Primary database</div></div>
+            <div class="tech-item"><div class="icon">🔐</div><div class="name">OAuth2 / IAM</div><div class="desc">Authorization service</div></div>
+        </div>
+
+        <!-- Q4: DDD + Hexagonal -->
+        <div class="qa-block">
+            <div class="interviewer">
+                <div class="avatar">👨‍💼</div>
+                <div class="bubble">
+                    <div class="name">Interviewer</div>
+                    <p><strong>Q4:</strong> Bạn áp dụng DDD và Hexagonal Architecture để restructure core modules. Codebase trước đó ở trạng thái như thế nào? Bạn tổ chức Hexagonal Architecture các layers ra sao trong Spring Boot, và kết quả cụ thể là gì?</p>
+                </div>
+            </div>
+
+            <div class="candidate-response">
+                <div class="avatar">🧑‍💻</div>
+                <div class="bubble">
+                    <div class="name">Thái Đông</div>
+
+                    <div class="challenge-box">
+                        <h4>🔥 Vấn đề của codebase cũ:</h4>
+                        <ul>
+                            <li><strong>Fat controllers:</strong> Business logic nằm trong controllers, 500–800 dòng/method</li>
+                            <li><strong>Tight coupling:</strong> Service A gọi trực tiếp repository của Service B. Thay đổi 1 table ảnh hưởng nhiều modules không liên quan</li>
+                            <li><strong>Không có domain boundary rõ ràng:</strong> Logic "Lịch làm việc" nằm rải rác ở 5–6 files khác nhau, không có domain model tập trung</li>
+                            <li><strong>Testing khó:</strong> Muốn test business logic phải setup cả database, HTTP context — test chạy mất vài phút</li>
+                        </ul>
+                    </div>
+
+                    <p><strong>Module được restructure: Working Schedule domain (HRM)</strong></p>
+                    <p>Đây là module phức tạp nhất — quản lý lịch làm việc, ca làm, ngày nghỉ phép, overtime của nhân viên.</p>
+
+                    <div class="architecture-diagram">
+                         ┌─────────────────────────────────────────────┐
+                         │            Driving Adapters (Input)          │
+                         │                                              │
+                         │  ┌─────────────────┐  ┌──────────────────┐  │
+                         │  │ REST Controller  │  │  Kafka Consumer  │  │
+                         │  │  (HTTP API)      │  │ (Event Handler)  │  │
+                         │  └────────┬─────────┘  └────────┬─────────┘  │
+                         └───────────┼────────────────────┼─────────────┘
+                                     │                    │
+                                     ▼                    ▼
+                         ┌─────────────────────────────────────────────┐
+                         │           Application Layer (Use Cases)      │
+                         │                                              │
+                         │   ScheduleApplicationService                 │
+                         │   - createSchedule(cmd)                      │
+                         │   - assignShift(cmd)                         │
+                         │   - requestLeave(cmd)                        │
+                         │   - approveOvertime(cmd)                     │
+                         └─────────────────────────────────────────────┘
+                                     │                    │
+                                     ▼                    ▼
+                         ┌─────────────────────────────────────────────┐
+                         │             Domain Layer (Core)              │
+                         │                                              │
+                         │   Entities / Value Objects:                  │
+                         │   Shift (VO) · LeaveRequest · Schedule (AR)  │
+                         │                                              │
+                         │   Ports (Interfaces — defined here):         │
+                         │   ScheduleRepository · NotificationPort      │
+                         │   IAMPort                                    │
+                         └─────────────────────────────────────────────┘
+                                     │                    │
+                                     ▼                    ▼
+                         ┌─────────────────────────────────────────────┐
+                         │           Driven Adapters (Output)           │
+                         │                                              │
+                         │  ┌──────────────┐  ┌──────────────────────┐ │
+                         │  │ MySQL Adapter │  │   Kafka Producer     │ │
+                         │  │  (JPA Impl)  │  │  (Event Publisher)   │ │
+                         │  └──────────────┘  └──────────────────────┘ │
+                         │  ┌──────────────┐  ┌──────────────────────┐ │
+                         │  │ Redis Adapter │  │  IAM HTTP Client     │ │
+                         │  │ (Cache Impl) │  │  (OAuth2 Adapter)    │ │
+                         │  └──────────────┘  └──────────────────────┘ │
+                         └─────────────────────────────────────────────┘
+                    </div>
+
+                    <pre><code>// === DOMAIN LAYER — không phụ thuộc bất kỳ framework nào ===
+
+// Value Object — Shift
+public final class Shift {
+    private final LocalTime startTime;
+    private final LocalTime endTime;
+    private final ShiftType type; // MORNING, AFTERNOON, NIGHT
+
+    public Shift(LocalTime startTime, LocalTime endTime, ShiftType type) {
+        if (endTime.isBefore(startTime) && type != ShiftType.NIGHT) {
+            throw new InvalidShiftException("Giờ kết thúc phải sau giờ bắt đầu");
+        }
+        this.startTime = startTime;
+        this.endTime   = endTime;
+        this.type      = type;
+    }
+
+    public Duration getDuration() {
+        if (type == ShiftType.NIGHT) {
+            return Duration.between(startTime, LocalTime.MAX)
+                .plus(Duration.between(LocalTime.MIN, endTime));
+        }
+        return Duration.between(startTime, endTime);
+    }
+}
+
+// Aggregate Root — WorkingSchedule
+public class WorkingSchedule {
+    private Long id;
+    private Long employeeId;
+    private YearMonth period;
+    private List&lt;DailyAssignment&gt; assignments;
+    private ScheduleStatus status; // DRAFT, PUBLISHED, LOCKED
+
+    public void assignShift(LocalDate date, Shift shift) {
+        if (status == ScheduleStatus.LOCKED) {
+            throw new ScheduleLockedException("Không thể sửa lịch đã khoá");
+        }
+
+        boolean alreadyAssigned = assignments.stream()
+            .anyMatch(a -> a.getDate().equals(date));
+        if (alreadyAssigned) {
+            throw new DuplicateAssignmentException("Ngày này đã có ca làm");
+        }
+
+        validateRestGap(date, shift); // Business rule: nghỉ tối thiểu 11h giữa 2 ca
+        assignments.add(new DailyAssignment(date, shift));
+    }
+}
+
+// Port — Domain định nghĩa interface, Adapter implement
+public interface ScheduleRepository {
+    Optional&lt;WorkingSchedule&gt; findByEmployeeAndPeriod(Long employeeId, YearMonth period);
+    void save(WorkingSchedule schedule);
+}
+
+// === APPLICATION LAYER ===
+@Service
+@Transactional
+public class ScheduleApplicationService {
+
+    // Inject Ports (interface), không phải concrete implementations
+    private final ScheduleRepository scheduleRepo;
+    private final IAMPort            iamPort;
+    private final NotificationPort   notificationPort;
+
+    public void assignShift(AssignShiftCommand cmd) {
+        if (!iamPort.hasPermission(cmd.getRequesterId(), "SCHEDULE_EDIT")) {
+            throw new UnauthorizedException();
+        }
+
+        WorkingSchedule schedule = scheduleRepo
+            .findByEmployeeAndPeriod(cmd.getEmployeeId(), cmd.getPeriod())
+            .orElseGet(() -> WorkingSchedule.create(cmd.getEmployeeId(), cmd.getPeriod()));
+
+        Shift shift = new Shift(cmd.getStartTime(), cmd.getEndTime(), cmd.getShiftType());
+        schedule.assignShift(cmd.getDate(), shift); // Validation xảy ra ở đây
+
+        scheduleRepo.save(schedule);
+    }
+}
+
+// === DRIVEN ADAPTER ===
+@Repository
+public class MySQLScheduleRepository implements ScheduleRepository {
+
+    @Autowired
+    private JpaScheduleRepository jpaRepo;
+
+    @Override
+    public Optional&lt;WorkingSchedule&gt; findByEmployeeAndPeriod(Long employeeId, YearMonth period) {
+        return jpaRepo.findByEmployeeIdAndPeriod(employeeId, period)
+            .map(this::toDomain); // JPA entity → Domain object
+    }
+}</code></pre>
+
+                    <div class="solution-box">
+                        <h4>✅ Kết quả sau khi restructure:</h4>
+                        <ul>
+                            <li><strong>Testability:</strong> Domain logic test bằng unit test thuần túy — không cần database, test chạy trong &lt;100ms</li>
+                            <li><strong>Maintainability:</strong> Thay đổi database (MySQL → PostgreSQL) chỉ cần thay adapter, domain không đổi</li>
+                            <li><strong>Giảm coupling:</strong> Module khác muốn dùng Schedule chỉ gọi Application Service, không access trực tiếp DB</li>
+                            <li><strong>Onboarding nhanh hơn:</strong> Dev mới đọc domain layer là hiểu business rules, không cần đọc infrastructure code</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Q5: Deadlock Resolution -->
+        <div class="qa-block">
+            <div class="interviewer">
+                <div class="avatar">👨‍💼</div>
+                <div class="bubble">
+                    <div class="name">Interviewer</div>
+                    <p><strong>Q5:</strong> Bạn mention "resolved production deadlocks" và "improved system performance under high-concurrency workloads". Đây là kinh nghiệm thực tế rất giá trị. Có thể kể chi tiết một case deadlock cụ thể: nguyên nhân, cách detect, và cách fix?</p>
+                </div>
+            </div>
+
+            <div class="candidate-response">
+                <div class="avatar">🧑‍💻</div>
+                <div class="bubble">
+                    <div class="name">Thái Đông</div>
+
+                    <div class="challenge-box">
+                        <h4>🔥 Case Study: Production Deadlock trong HRM</h4>
+
+                        <p><strong>Triệu chứng:</strong></p>
+                        <ul>
+                            <li>Vào giờ cao điểm (sáng 8–9h), hệ thống HRM bắt đầu chậm dần</li>
+                            <li>Một số request bị timeout (30s), log thấy <code>"Lock wait timeout exceeded"</code></li>
+                            <li>DB connections pool cạn kiệt, các module khác bị ảnh hưởng theo</li>
+                        </ul>
+
+                        <p><strong>Root Cause — 2 transactions lock các rows theo thứ tự ngược nhau:</strong></p>
+
+                        <pre><code>-- Transaction A: Manager approve đơn nghỉ phép
+BEGIN;
+UPDATE leave_requests SET status='APPROVED' WHERE id=101;     -- Lock row 101
+-- ... some logic ...
+UPDATE employee_schedules SET day_off=true
+    WHERE employee_id=55 AND date='2025-03-15';                -- Lock schedule row
+-- Đang chờ Transaction B release schedule lock... DEADLOCK!
+
+-- Transaction B: Job tự động phân ca làm việc (chạy song song)
+BEGIN;
+UPDATE employee_schedules SET shift_id=3
+    WHERE employee_id=55 AND date='2025-03-15';                -- Lock schedule row
+-- ... some logic ...
+UPDATE leave_requests SET status='CONFLICT'
+    WHERE employee_id=55 AND date='2025-03-15';                -- Lock leave row
+-- Đang chờ Transaction A release leave lock... DEADLOCK!</code></pre>
+                    </div>
+
+                    <p><strong>Cách detect:</strong></p>
+                    <pre><code>-- MySQL deadlock log
+SHOW ENGINE INNODB STATUS;
+
+-- Tìm trong "LATEST DETECTED DEADLOCK":
+-- "TRANSACTION 1 WAITING FOR THIS LOCK TO BE GRANTED"
+-- "TRANSACTION 2 HOLDS THE LOCK"
+-- → Thấy rõ 2 transactions lock ngược nhau
+
+-- Setup monitoring alert:
+-- Alert khi "Lock wait timeout" > 5 lần/phút</code></pre>
+
+                    <div class="solution-box">
+                        <h4>✅ Solution: Consistent Lock Ordering + Index + Retry</h4>
+
+                        <pre><code>// FIX 1: Quy ước thứ tự lock nhất quán
+// Rule: LUÔN lock theo thứ tự: leave_requests TRƯỚC, employee_schedules SAU
+// Mọi transaction phải tuân theo thứ tự này
+
+@Service
+public class LeaveApprovalService {
+
+    @Transactional
+    @Retryable(value = DeadlockException.class, maxAttempts = 3,
+               backoff = @Backoff(delay = 100, multiplier = 2))
+    public void approveLeave(Long leaveRequestId) {
+
+        // Bước 1: Lock leave_requests TRƯỚC (consistent order)
+        LeaveRequest leave = leaveRepo.findByIdWithLock(leaveRequestId);
+
+        // Bước 2: Sau đó mới lock schedule
+        EmployeeSchedule schedule = scheduleRepo
+            .findByEmployeeAndDateWithLock(leave.getEmployeeId(), leave.getDate());
+
+        leave.setStatus(LeaveStatus.APPROVED);
+        schedule.setDayOff(true);
+
+        leaveRepo.save(leave);
+        scheduleRepo.save(schedule);
+    }
+}
+
+@Service
+public class ShiftAssignmentService {
+
+    @Transactional
+    @Retryable(value = DeadlockException.class, maxAttempts = 3,
+               backoff = @Backoff(delay = 100, multiplier = 2))
+    public void assignShift(Long employeeId, LocalDate date, Long shiftId) {
+
+        // Bước 1: Lock leave_requests TRƯỚC — CÙNG THỨ TỰ với trên!
+        leaveRepo.findPendingByEmployeeAndDateWithLock(employeeId, date)
+            .ifPresent(leave -> {
+                leave.setStatus(LeaveStatus.CONFLICT);
+                leaveRepo.save(leave);
+            });
+
+        // Bước 2: Sau đó mới lock schedule
+        EmployeeSchedule schedule = scheduleRepo
+            .findByEmployeeAndDateWithLock(employeeId, date);
+        schedule.setShiftId(shiftId);
+        scheduleRepo.save(schedule);
+    }
+}
+
+// Repository với SELECT FOR UPDATE
+public interface LeaveRepository extends JpaRepository&lt;LeaveRequest, Long&gt; {
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT l FROM LeaveRequest l WHERE l.id = :id")
+    Optional&lt;LeaveRequest&gt; findByIdWithLock(@Param("id") Long id);
+}</code></pre>
+
+                        <pre><code>-- FIX 2: Composite index — giảm lock scope
+-- TRƯỚC: Index chỉ trên (employee_id) → scan nhiều rows → lock nhiều rows không cần thiết
+-- SAU: Composite index → chỉ lock đúng 1 row cần thiết
+
+ALTER TABLE employee_schedules
+    ADD INDEX idx_employee_date (employee_id, date);
+
+-- FIX 3: @Retryable — safety net nếu vẫn còn deadlock edge case
+-- Retry tối đa 3 lần với exponential backoff (100ms, 200ms, 400ms)</code></pre>
+                    </div>
+
+                    <div class="metrics">
+                        <div class="metric-card"><div class="metric-value">→ 0</div><div class="metric-label">Deadlocks / ngày</div></div>
+                        <div class="metric-card"><div class="metric-value">30s → &lt;500ms</div><div class="metric-label">P99 Response Time</div></div>
+                        <div class="metric-card"><div class="metric-value">3×</div><div class="metric-label">Throughput tăng</div></div>
+                    </div>
+
+                    <div class="tip">
+                        <strong>💡 Lessons learned:</strong>
+                        <ul>
+                            <li>Luôn định nghĩa <strong>lock ordering convention</strong> cho team — document và enforce trong code review</li>
+                            <li><strong>Composite indexes</strong> không chỉ tăng tốc query mà còn giảm lock scope, giảm contention</li>
+                            <li>Dùng <strong>retry với exponential backoff</strong> như safety net cho deadlock edge cases</li>
+                            <li><strong>Monitor lock waits</strong> và alert sớm trước khi thành production incident</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Q5b: IAM & OAuth2 -->
+        <div class="qa-block">
+            <div class="interviewer">
+                <div class="avatar">👨‍💼</div>
+                <div class="bubble">
+                    <div class="name">Interviewer</div>
+                    <p><strong>Q5b:</strong> Bạn cũng implement OAuth2-based authorization và IAM service cho các enterprise platform nội bộ. Tại sao không dùng sẵn Keycloak hay Auth0? IAM service được thiết kế thế nào — RBAC hay ABAC? Và làm sao các service như HRM, GAM verify quyền mà không tạo ra tight coupling với IAM?</p>
+                </div>
+            </div>
+
+            <div class="candidate-response">
+                <div class="avatar">🧑‍💻</div>
+                <div class="bubble">
+                    <div class="name">Thái Đông</div>
+
+                    <div class="challenge-box">
+                        <h4>🔥 Tại sao không dùng Keycloak / Auth0?</h4>
+                        <ul>
+                            <li><strong>Context:</strong> GHTK có hàng chục internal services với permission model rất đặc thù — permission gắn liền với business domain (e.g., <code>SHIFT:APPROVE:DEPARTMENT_X</code>, <code>LEAVE:APPROVE:LEVEL_3</code>). Keycloak phù hợp cho generic auth, không model được fine-grained business permissions này mà không hack phức tạp</li>
+                            <li><strong>Tự chủ data:</strong> Dữ liệu nhân sự rất nhạy cảm. External SaaS (Auth0) = data đi ra ngoài, không phù hợp với policy bảo mật nội bộ</li>
+                            <li><strong>Integration cost:</strong> Keycloak cần thêm một layer transform giữa Keycloak roles và business permissions — thực ra tốn effort không kém tự build</li>
+                        </ul>
+                    </div>
+
+                    <div class="deep-dive">
+                        <h4>🎯 Permission Model: RBAC + Resource Scope</h4>
+                        <p>Dùng RBAC làm base nhưng extend thêm <strong>resource scope</strong> để handle fine-grained permissions:</p>
+
+                        <pre><code>-- Core schema
+CREATE TABLE roles (
+    id   BIGINT PRIMARY KEY,
+    name VARCHAR(100) UNIQUE NOT NULL  -- 'HR_MANAGER', 'DEPT_LEAD', 'EMPLOYEE'
+);
+
+CREATE TABLE permissions (
+    id       BIGINT PRIMARY KEY,
+    action   VARCHAR(100) NOT NULL,   -- 'APPROVE', 'VIEW', 'EDIT', 'DELETE'
+    resource VARCHAR(100) NOT NULL,   -- 'LEAVE_REQUEST', 'SHIFT', 'SALARY'
+    scope    VARCHAR(100),            -- NULL = toàn công ty; 'OWN_DEPT' = chỉ phòng ban
+    UNIQUE (action, resource, scope)
+);
+
+-- Examples:
+-- ('APPROVE', 'LEAVE_REQUEST', NULL)      → HR Manager approve bất kỳ đơn nào
+-- ('APPROVE', 'LEAVE_REQUEST', 'OWN_DEPT')→ Dept Lead chỉ approve đơn trong phòng mình
+-- ('VIEW', 'SALARY', 'OWN')              → Nhân viên chỉ xem lương bản thân
+
+CREATE TABLE role_permissions (
+    role_id       BIGINT REFERENCES roles(id),
+    permission_id BIGINT REFERENCES permissions(id),
+    PRIMARY KEY (role_id, permission_id)
+);
+
+CREATE TABLE user_roles (
+    user_id BIGINT NOT NULL,
+    role_id BIGINT REFERENCES roles(id),
+    PRIMARY KEY (user_id, role_id)
+);</code></pre>
+                    </div>
+
+                    <div class="deep-dive">
+                        <h4>🎯 OAuth2 Flow: Client Credentials cho service-to-service</h4>
+                        <pre><code>                   User / Admin Portal
+                          │
+                          │ 1. POST /oauth/token
+                          │    grant_type=password
+                          │    username=dong@ghtk.vn, password=***
+                          ▼
+                   ┌──────────────┐
+                   │  IAM Service │
+                   │              │◄─── Validate credentials
+                   │              │◄─── Load user roles + permissions
+                   │              │
+                   │  Issue JWT:  │
+                   │  {           │
+                   │   sub: 12345,│
+                   │   roles: [   │
+                   │    "HR_MGR" ]│
+                   │   perms: [   │
+                   │    "APPROVE  │
+                   │     _LEAVE   │
+                   │     _OWN_    │
+                   │     DEPT"]   │
+                   │   exp: +8h   │
+                   │  }           │
+                   └──────┬───────┘
+                          │ 2. Return access_token (JWT) + refresh_token
+                          ▼
+                   Client (browser / mobile)
+                          │
+                          │ 3. Bearer token trong mọi request
+                          ▼
+                   HRM Service / GAM Service
+                          │
+                          │ 4. Validate JWT locally (verify signature)
+                          │    + check permission trong payload
+                          │    (KHÔNG gọi lại IAM cho mỗi request)
+                          ▼
+                   Business Logic</code></pre>
+
+                        <p><strong>Service-to-service (Machine-to-Machine):</strong></p>
+                        <pre><code>-- Scoring Service gọi Notification Service sau khi chấm điểm
+-- Dùng Client Credentials flow
+
+POST /oauth/token
+grant_type=client_credentials
+client_id=scoring-service
+client_secret=***
+
+→ IAM trả JWT với scope: ["notification:send"]
+→ Scoring Service dùng token này gọi Notification Service</code></pre>
+                    </div>
+
+                    <div class="deep-dive">
+                        <h4>🎯 Làm sao các service verify quyền mà không tight coupling với IAM?</h4>
+                        <p><strong>Vấn đề nếu mỗi request phải gọi IAM để verify:</strong> HRM nhận 1.000 req/s → 1.000 calls/s sang IAM → IAM thành single point of failure và bottleneck.</p>
+
+                        <p><strong>Solution: JWT Self-contained + Local Verification</strong></p>
+                        <pre><code>// IAM ký JWT bằng RSA private key
+// Mỗi service có IAM's public key để verify locally — KHÔNG gọi IAM
+
+// Shared library (internal SDK) — mỗi service include
+@Component
+public class JwtAuthFilter extends OncePerRequestFilter {
+
+    private final JwtVerifier jwtVerifier; // verify signature với public key
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest req, ...) {
+        String token = extractBearerToken(req);
+        Claims claims = jwtVerifier.verify(token); // local, ~0.1ms
+
+        // Set SecurityContext — service có thể dùng @PreAuthorize
+        SecurityContextHolder.getContext().setAuthentication(
+            new JwtAuthenticationToken(claims)
+        );
+    }
+}
+
+// Sử dụng trong service:
+@Service
+public class LeaveApprovalService {
+
+    @PreAuthorize("hasPermission('LEAVE_REQUEST', 'APPROVE')")
+    public void approveLeave(Long leaveId, SecurityContext ctx) {
+        Claims claims = (Claims) ctx.getAuthentication().getPrincipal();
+
+        // Scope check: OWN_DEPT → chỉ approve đơn trong phòng mình
+        if (claims.hasScope("OWN_DEPT")) {
+            LeaveRequest leave = leaveRepo.findById(leaveId);
+            Long approverDept = claims.getDepartmentId();
+
+            if (!leave.getEmployeeDeptId().equals(approverDept)) {
+                throw new AccessDeniedException("Không có quyền approve đơn ngoài phòng ban");
+            }
+        }
+
+        // Business logic...
+    }
+}</code></pre>
+
+                        <p><strong>Khi quyền thay đổi (revoke token sớm):</strong></p>
+                        <pre><code>// Vấn đề: JWT có TTL 8h. User bị revoke quyền ngay lúc 10:00,
+// nhưng token vẫn valid đến 18:00 → security hole
+
+// Solution: Token Blacklist trong Redis (chỉ cho critical operations)
+// Khi revoke: SETEX blacklist:{jti} {remaining_ttl} "revoked"
+// Trong filter: kiểm tra Redis trước khi accept token
+// → Dùng Redis cache (TTL = remaining JWT lifetime), không phải DB
+
+public class JwtAuthFilter extends OncePerRequestFilter {
+    private final RedisTemplate redis;
+
+    protected void doFilterInternal(...) {
+        String jti = claims.getId(); // JWT ID — unique per token
+
+        // Chỉ check blacklist cho sensitive operations (admin, approve, delete)
+        if (isSensitiveOperation(req) && redis.hasKey("blacklist:" + jti)) {
+            throw new TokenRevokedException();
+        }
+
+        // Normal operations: chỉ verify signature, không check Redis
+        // → P99 latency: <1ms
+    }
+}</code></pre>
+                    </div>
+
+                    <div class="solution-box">
+                        <h4>✅ Kết quả & Trade-offs:</h4>
+                        <ul>
+                            <li><strong>Zero IAM calls per request:</strong> JWT self-contained → IAM chỉ bị gọi khi login và refresh token. Không có single point of failure runtime</li>
+                            <li><strong>Shared SDK:</strong> Permission logic được centralize trong 1 library, mọi service đều dùng — không duplicate code, thay đổi 1 chỗ</li>
+                            <li><strong>Trade-off chấp nhận được:</strong> Permission thay đổi chỉ có hiệu lực sau khi token cũ hết hạn (max 8h). Với business use case nội bộ, OK — không phải banking</li>
+                            <li><strong>Sensitive ops:</strong> Blacklist trong Redis xử lý các trường hợp cần revoke ngay (nhân viên nghỉ đột xuất, tài khoản bị compromise)</li>
+                        </ul>
+                    </div>
+
+                    <div class="metrics">
+                        <div class="metric-card"><div class="metric-value">0</div><div class="metric-label">IAM calls per request</div></div>
+                        <div class="metric-card"><div class="metric-value">&lt;1ms</div><div class="metric-label">Auth overhead per request</div></div>
+                        <div class="metric-card"><div class="metric-value">8h / 7d</div><div class="metric-label">Access / Refresh token TTL</div></div>
+                        <div class="metric-card"><div class="metric-value">1 SDK</div><div class="metric-label">Shared auth library</div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== PART 4: TOMOSIA ===== -->
+    <section id="tomosia">
+        <h2>🎢 Phần 4 — Tomosia: Digital Transformation & Data Pipeline (15 phút)</h2>
+
+        <div class="project-header">
+            <h3>🎠 Tomosia — Nền tảng chuyển đổi số công viên giải trí & Data Pipeline</h3>
+            <p style="color:#ccc; margin-top:10px;">Số hoá hoàn toàn quy trình vận hành công viên giải trí và xây dựng data pipeline trên AWS</p>
+            <div class="project-meta">
+                <div class="meta-item"><div class="meta-label">Thời gian</div><div class="meta-value">06/2020 – 10/2024 (4 năm+)</div></div>
+                <div class="meta-item"><div class="meta-label">Vai trò</div><div class="meta-value">Software Engineer (Java/PHP)</div></div>
+                <div class="meta-item"><div class="meta-label">Cloud</div><div class="meta-value">AWS (Lambda, SQS, OpenSearch)</div></div>
+                <div class="meta-item"><div class="meta-label">Domain</div><div class="meta-value">Entertainment, E-commerce</div></div>
+            </div>
+        </div>
+
+        <!-- Q6: Inventory & Concurrency -->
+        <div class="qa-block">
+            <div class="interviewer">
+                <div class="avatar">👨‍💼</div>
+                <div class="bubble">
+                    <div class="name">Interviewer</div>
+                    <p><strong>Q6:</strong> Ticket booking platform nghe có nhiều thách thức kỹ thuật thú vị. Câu hỏi đầu tiên: làm sao bạn thiết kế inventory model và đảm bảo không bao giờ oversell khi hàng trăm người mua vé cùng lúc? Nhiều người chỉ dùng một field <code>remaining</code> — tại sao cách đó không đủ?</p>
+                </div>
+            </div>
+
+            <div class="candidate-response">
+                <div class="avatar">🧑‍💻</div>
+                <div class="bubble">
+                    <div class="name">Thái Đông</div>
+                    <p><strong>Tại sao single <code>remaining</code> field không đủ:</strong></p>
+                    <p>Khi user chọn vé, hệ thống cần giữ chỗ tạm thời trong khi user thanh toán (có thể mất 5–15 phút). Nếu chỉ dùng <code>remaining</code>, không thể phân biệt "chỗ đang được ai đó giữ chờ thanh toán" và "chỗ thực sự còn trống". Kết quả là either bán nhầm, hoặc phải hiển thị "sold out" sớm hơn thực tế.</p>
+
+                    <div class="deep-dive">
+                        <h4>🎯 Inventory Model: Tách 3 trạng thái</h4>
+                        <pre><code>CREATE TABLE daily_inventory (
+    park_id         UUID NOT NULL,
+    ticket_type_id  UUID NOT NULL,
+    visit_date      DATE NOT NULL,
+    total_capacity  INT NOT NULL,           -- 500 (admin set, ít thay đổi)
+    reserved        INT NOT NULL DEFAULT 0, -- đang giữ chỗ tạm, chờ thanh toán
+    booked          INT NOT NULL DEFAULT 0, -- đã thanh toán xong
+    version         INT NOT NULL DEFAULT 0, -- optimistic locking
+    PRIMARY KEY (park_id, ticket_type_id, visit_date),
+
+    -- Safety net cuối cùng: dù code có bug cũng không oversell
+    CONSTRAINT chk_no_oversell CHECK (reserved + booked &lt;= total_capacity),
+    CONSTRAINT chk_non_negative CHECK (reserved >= 0 AND booked >= 0)
+);
+
+-- available = total_capacity - reserved - booked (tính toán, KHÔNG lưu riêng)</code></pre>
+
+                        <p><strong>Lifecycle của 3 field:</strong></p>
+                        <pre><code>-- Khách chọn 5 vé → Reserve (giữ chỗ tạm):
+    reserved += 5       -- available giảm 5
+
+-- Payment thành công → Confirm:
+    reserved -= 5, booked += 5  -- chuyển từ reserved → booked
+
+-- Payment fail / TTL hết → Release:
+    reserved -= 5       -- available tăng lại 5
+
+-- Cancel booking đã confirm → Release:
+    booked -= 5         -- available tăng lại 5</code></pre>
+                    </div>
+
+                    <div class="deep-dive">
+                        <h4>🎯 Chống Oversell: Redis Pre-check + DB Optimistic Lock</h4>
+                        <p><strong>Vấn đề race condition:</strong></p>
+                        <pre><code>-- Còn 6 chỗ. Cùng lúc: Khách A đặt 5 vé, Khách B đặt 3 vé
+Thread A: READ available=6 → check 5≤6 ✓ → UPDATE reserved+=5
+Thread B: READ available=6 → check 3≤6 ✓ → UPDATE reserved+=3
+                ↑ đọc cùng giá trị cũ vì A chưa commit
+-- Kết quả: bán 8 vé cho 6 chỗ → OVERSELL!</code></pre>
+
+                        <p><strong>Solution: Redis Lua (reject sớm) + DB Optimistic Lock (source of truth):</strong></p>
+                        <pre><code>-- Redis Lua script — atomic pre-check (không thể bị race condition)
+local key      = KEYS[1]  -- "inventory:{park}:{type}:{date}"
+local qty      = tonumber(ARGV[1])
+local total    = tonumber(redis.call('HGET', key, 'total')    or 0)
+local reserved = tonumber(redis.call('HGET', key, 'reserved') or 0)
+local booked   = tonumber(redis.call('HGET', key, 'booked')   or 0)
+local available = total - reserved - booked
+
+if available &lt; qty then
+    return -1  -- hết chỗ, reject ngay tại Redis
+end
+
+redis.call('HINCRBY', key, 'reserved', qty)
+return available - qty  -- remaining sau khi reserve</code></pre>
+
+                        <pre><code>-- DB Optimistic Lock — source of truth
+-- Nếu version thay đổi giữa lúc đọc và ghi → conflict → retry
+UPDATE daily_inventory
+SET    reserved = reserved + :quantity,
+       version  = version  + 1
+WHERE  park_id        = :parkId
+  AND  ticket_type_id = :ticketTypeId
+  AND  visit_date     = :visitDate
+  AND  version        = :expectedVersion          -- optimistic check
+  AND  (total_capacity - reserved - booked) >= :quantity;  -- safety check
+-- affected rows = 0 → conflict → rollback Redis, retry (max 3 lần)</code></pre>
+
+                        <p><strong>Khi DB fail → Rollback Redis:</strong></p>
+                        <pre><code>// Compensation: hoàn lại Redis counter nếu DB conflict
+if (affectedRows == 0) {
+    redisClient.hIncrBy(key, "reserved", -quantity); // rollback
+    if (retryCount < 3) retry();
+    else throw new SoldOutException();
+}</code></pre>
+
+                        <p><strong>Reconciliation job</strong> chạy mỗi 30 giây sync Redis ↔ DB, sửa drift nếu có app crash giữa chừng:</p>
+                        <pre><code>-- Reconciliation: DB là source of truth, push sang Redis
+SELECT reserved, booked FROM daily_inventory WHERE visit_date = TODAY;
+-- Với mỗi row: HSET inventory:{key} reserved {db_val} booked {db_val}</code></pre>
+
+                        <p><strong>Redis down → Fallback:</strong> bypass Redis, gọi thẳng DB với Pessimistic Lock (<code>SELECT FOR UPDATE</code>). Chậm hơn nhưng correct. Circuit breaker tự switch mode khi Redis recover.</p>
+                    </div>
+
+                    <div class="metrics">
+                        <div class="metric-card"><div class="metric-value">0</div><div class="metric-label">Overselling incidents</div></div>
+                        <div class="metric-card"><div class="metric-value">&lt;1ms</div><div class="metric-label">Redis pre-check latency</div></div>
+                        <div class="metric-card"><div class="metric-value">80–90%</div><div class="metric-label">DB load giảm (Redis reject sớm)</div></div>
+                        <div class="metric-card"><div class="metric-value">30s</div><div class="metric-label">Reconciliation interval</div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Q7: Booking State Machine + TTL -->
+        <div class="qa-block">
+            <div class="interviewer">
+                <div class="avatar">👨‍💼</div>
+                <div class="bubble">
+                    <div class="name">Interviewer</div>
+                    <p><strong>Q7:</strong> Vậy khi user chọn vé xong nhưng không thanh toán thì sao? Chỗ đó bị "treo" mãi à? Và bạn thiết kế booking state machine như thế nào để handle hết các edge case?</p>
+                </div>
+            </div>
+
+            <div class="candidate-response">
+                <div class="avatar">🧑‍💻</div>
+                <div class="bubble">
+                    <div class="name">Thái Đông</div>
+                    <p><strong>Two-Phase Reservation với TTL:</strong></p>
+                    <p>Booking được tạo ở trạng thái <code>PENDING</code> với <code>expires_at = now + 15 phút</code>. Đây là cửa sổ thời gian user có để hoàn thành thanh toán. Sau đó hệ thống tự release chỗ về pool.</p>
+
+                    <div class="architecture-diagram">
+              User chọn vé → reserve inventory
+                            │
+                            ▼
+                      ┌──────────┐
+                      │  PENDING  │ ── expires_at = now + 15min
+                      └─────┬─────┘    (reserved inventory đang giữ)
+                            │
+            ┌───────────────┼───────────────┐
+            │               │               │
+            ▼               ▼               ▼
+      ┌──────────┐    ┌─────────┐    ┌──────────┐
+      │CONFIRMED │    │ EXPIRED │    │CANCELLED │
+      │(đã trả)  │    │(hết TTL)│    │(user hủy)│
+      └─────┬────┘    └─────────┘    └──────────┘
+            │          release inv    release inv
+            ▼
+      ┌──────────┐
+      │   USED   │ ── Đã scan QR vào cổng
+      └──────────┘
+                    </div>
+
+                    <pre><code>-- Booking record
+INSERT INTO bookings (id, status, expires_at, quantity, ...)
+VALUES (gen_random_uuid(), 'PENDING', NOW() + INTERVAL '15 minutes', 5, ...);
+
+-- Job chạy mỗi 15–30 giây: expire PENDING quá hạn
+UPDATE bookings
+SET    status = 'EXPIRED'
+WHERE  status = 'PENDING' AND expires_at &lt; NOW()
+RETURNING id, park_id, ticket_type_id, visit_date, quantity;
+-- → Với mỗi expired booking: release inventory (reserved -= quantity)
+
+-- Delay queue (bổ sung precision): khi reserve → publish delayed message (delay=TTL)
+-- Khi message arrive: if PENDING → expire + release; if CONFIRMED → ignore</code></pre>
+
+                    <p><strong>Quy tắc quan trọng của State Machine:</strong></p>
+                    <ul>
+                        <li><strong>EXPIRED và USED là terminal states</strong> — không bao giờ revert</li>
+                        <li><strong>Payment FAILED ≠ EXPIRED:</strong> Payment fail → booking vẫn <code>PENDING</code>, cho phép user retry bằng phương thức khác (max 3 lần). Chỉ expire khi hết TTL</li>
+                        <li><strong>CONFIRMED → CANCELLED</strong> phải trigger refund async, release <code>booked</code> inventory</li>
+                        <li><strong>Price snapshot:</strong> Giá được snapshot vào booking record tại thời điểm tạo. Payment dùng giá này, không query giá mới — tránh "admin đổi giá giữa chừng"</li>
+                    </ul>
+
+                    <div class="tip">
+                        <strong>💡 Tại sao cho retry thay vì cancel ngay khi payment fail?</strong>
+                        <ul>
+                            <li>Cancel ngay → user phải đặt lại từ đầu, inventory release → có thể bị người khác mua mất</li>
+                            <li>Cho retry (max 3, trong TTL) → user chỉ cần chọn phương thức thanh toán khác, inventory vẫn giữ cho họ</li>
+                            <li>TTL vẫn chạy → không giữ chỗ mãi nếu user bỏ đi</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Q8: Payment Reliability - Dual Confirmation + Outbox -->
+        <div class="qa-block">
+            <div class="interviewer">
+                <div class="avatar">👨‍💼</div>
+                <div class="bubble">
+                    <div class="name">Interviewer</div>
+                    <p><strong>Q8:</strong> Phần payment thường là phần khó nhất. Câu hỏi thực tế: nếu user thanh toán thành công nhưng webhook callback từ payment gateway bị miss (server đang deploy, network issue), hệ thống xử lý thế nào? Và làm sao đảm bảo sau khi confirm booking, event sinh vé không bao giờ bị mất?</p>
+                </div>
+            </div>
+
+            <div class="candidate-response">
+                <div class="avatar">🧑‍💻</div>
+                <div class="bubble">
+                    <div class="name">Thái Đông</div>
+
+                    <div class="challenge-box">
+                        <h4>🔥 Bài toán nguy hiểm nhất: "Tiền trừ nhưng vé không có"</h4>
+                        <pre><code>1. User thanh toán → gateway charge thành công
+2. Gateway gửi webhook → nhưng server đang deploy → callback fail
+3. Gateway retry vài lần → vẫn fail → ngừng retry
+4. Hệ thống: payment = PENDING, booking = PENDING
+5. Timeout job: booking EXPIRED, inventory released
+6. User: "Tiền bị trừ nhưng không nhận được vé!"</code></pre>
+                    </div>
+
+                    <div class="solution-box">
+                        <h4>✅ Solution: Dual Confirmation (Belt and Suspenders)</h4>
+                        <p>Không chỉ thụ động chờ callback — chủ động query gateway:</p>
+
+                        <pre><code>                  Webhook callback ──────────┐
+                  (primary)                 │
+                                            ▼
+                                     ┌──────────────┐
+Payment PENDING ─────────────────────│ handleSuccess │── Booking CONFIRMED
+                                     └──────────────┘
+                                            ▲
+                  Polling job  ─────────────┘
+                  (fallback, mỗi 2 phút)</code></pre>
+
+                        <pre><code>// Job 1: Status Polling — chạy mỗi 2 phút
+// Query gateway API cho tất cả payment PENDING > 5 phút
+List&lt;Payment&gt; stalePendings = paymentRepo
+    .findByStatusAndCreatedAtBefore("PENDING", now().minusMinutes(5));
+
+for (Payment p : stalePendings) {
+    GatewayStatus status = gatewayClient.queryStatus(p.getGatewayTxnId());
+    if (status == SUCCESS) {
+        confirmBooking(p); // update reserved→booked, booking→CONFIRMED
+    }
+}
+
+// Job 2: Timeout Expiry — chạy mỗi 30 giây
+// QUAN TRỌNG: query gateway LẦN CUỐI trước khi expire
+List&lt;Payment&gt; expiring = paymentRepo.findExpired(); // past expires_at
+for (Payment p : expiring) {
+    // Scenario: user trả lúc 10:14:50, expires_at=10:15:00
+    // callback chưa đến, nếu expire ngay → user mất tiền
+    GatewayStatus status = gatewayClient.queryStatus(p.getGatewayTxnId());
+    if (status == SUCCESS) {
+        confirmBooking(p); // gateway nói thành công → confirm bất kể timeout
+    } else {
+        expirePayment(p); // chỉ expire khi chắc chắn gateway không charge
+    }
+}</code></pre>
+
+                        <p><strong>Idempotency của handler</strong> — gateway retry callback nhiều lần:</p>
+                        <pre><code>public void handleWebhookCallback(GatewayCallback callback) {
+    Payment payment = paymentRepo.findByGatewayTxnId(callback.getTxnId());
+
+    // Idempotent: đã SUCCESS rồi → skip
+    if (payment.getStatus() == SUCCESS) {
+        return; // trả 200 OK để gateway không retry nữa
+    }
+
+    // Chỉ PENDING → SUCCESS là transition hợp lệ
+    if (payment.getStatus() != PENDING) {
+        throw new InvalidStateTransitionException();
+    }
+
+    // Verify amount không khớp → reject (chống tampering)
+    if (!callback.getAmount().equals(payment.getAmount())) {
+        throw new AmountMismatchException();
+    }
+
+    confirmPaymentAndBooking(payment); // optimistic lock để chặn race condition
+}</code></pre>
+
+                        <p><strong>Xử lý callback đến SAU khi booking đã expire:</strong></p>
+                        <pre><code>// 10:00 - Payment created (expires_at = 10:15)
+// 10:15 - Timeout job expire booking, inventory released
+// 10:16 - Callback đến: payment SUCCESS
+
+// Quyết định: AUTO-REFUND — KHÔNG cố confirm lại
+// Vì inventory đã release, có thể bị người khác mua
+// Booking EXPIRED là terminal state → không revert
+if (booking.getStatus() == EXPIRED) {
+    refundService.initiateRefund(payment); // async refund
+    notify(user, "Thanh toán trễ. Đã hoàn tiền, vui lòng đặt lại.");
+}</code></pre>
+                    </div>
+
+                    <div class="deep-dive">
+                        <h4>🎯 Transactional Outbox — Đảm bảo event không bao giờ mất</h4>
+                        <p><strong>Vấn đề:</strong> Sau khi confirm booking, cần publish event để sinh vé và gửi email. Nếu app crash giữa <code>UPDATE booking</code> và <code>publish event</code> → booking đã CONFIRMED nhưng vé không được sinh.</p>
+
+                        <pre><code>-- GIẢI PHÁP: Lưu event vào DB CÙNG transaction với business logic
+BEGIN;
+  UPDATE bookings SET status = 'CONFIRMED' WHERE id = :bookingId;
+
+  INSERT INTO outbox_events (event_type, payload, published)
+  VALUES ('BookingConfirmed', :payload, FALSE);
+COMMIT;
+-- Cả 2 thành công hoặc cả 2 rollback — KHÔNG BAO GIỜ mất event
+
+CREATE TABLE outbox_events (
+    id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    event_type TEXT    NOT NULL,   -- 'BookingConfirmed', 'PaymentCompleted'
+    payload    JSONB   NOT NULL,
+    published  BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX idx_outbox_unpublished ON outbox_events (created_at)
+    WHERE published = FALSE;</code></pre>
+
+                        <pre><code>// Outbox publisher: background job chạy mỗi vài giây
+List&lt;OutboxEvent&gt; unpublished = outboxRepo.findByPublished(false);
+
+for (OutboxEvent e : unpublished) {
+    messageBroker.publish(e.getEventType(), e.getPayload()); // fire to broker
+    outboxRepo.markPublished(e.getId());
+    // Nếu publish fail → skip, retry lần sau
+    // Consumer phải idempotent vì event có thể đến 2 lần
+}</code></pre>
+
+                        <p><strong>Flow hoàn chỉnh sau khi confirm:</strong></p>
+                        <pre><code>BookingConfirmed event
+  ├──▶ Ticketing Service  → sinh QR code / e-ticket
+  └──▶ Notification Svc   → email + SMS "Đặt vé thành công"</code></pre>
+                    </div>
+
+                    <div class="metrics">
+                        <div class="metric-card"><div class="metric-value">0</div><div class="metric-label">"Tiền trừ, vé không có"</div></div>
+                        <div class="metric-card"><div class="metric-value">≤2 phút</div><div class="metric-label">Detect missed callback</div></div>
+                        <div class="metric-card"><div class="metric-value">0</div><div class="metric-label">Event bị mất (Outbox)</div></div>
+                        <div class="metric-card"><div class="metric-value">3 levels</div><div class="metric-label">Reconciliation (real-time / 2min / daily)</div></div>
+                    </div>
+
+                    <div class="tip">
+                        <strong>💡 Reconciliation 3 tầng — safety net cuối cùng:</strong>
+                        <ul>
+                            <li><strong>Real-time:</strong> Verify amount match ngay tại mỗi callback</li>
+                            <li><strong>Near real-time (mỗi 2 phút):</strong> Polling job query gateway cho PENDING payments</li>
+                            <li><strong>Daily batch (03:00 AM):</strong> Download settlement report từ gateway, cross-check toàn bộ, alert nếu có discrepancy</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Q9: Data Pipeline -->
+        <div class="qa-block">
+            <div class="interviewer">
+                <div class="avatar">👨‍💼</div>
+                <div class="bubble">
+                    <div class="name">Interviewer</div>
+                    <p><strong>Q9:</strong> Ngoài ticket system, bạn cũng xây data pipeline trên AWS. Pipeline này làm gì và tại sao chọn serverless?</p>
+                </div>
+            </div>
+
+            <div class="candidate-response">
+                <div class="avatar">🧑‍💻</div>
+                <div class="bubble">
+                    <div class="name">Thái Đông</div>
+                    <p><strong>Context:</strong> Data ingestion pipeline cho dự án e-commerce — thu thập thông tin sản phẩm từ nhiều nguồn (websites đối tác, marketplace có JS-rendered content) để indexing và search.</p>
+
+                    <div class="architecture-diagram">
+CloudWatch Scheduler    SQS Queue         Lambda (Node.js)       OpenSearch
+       │                    │                    │                    │
+       │ Trigger (mỗi 6h)   │                    │                    │
+       ├───────────────────►│                    │                    │
+       │  [url1, url2, ...]  │                    │                    │
+       │                    │ Dequeue batch      │                    │
+       │                    ├───────────────────►│                    │
+       │                    │                    │                    │
+       │                    │                    │ Puppeteer:         │
+       │                    │                    │ headless Chrome    │
+       │                    │                    │ wait networkidle2  │
+       │                    │                    │ extract data       │
+       │                    │                    │                    │
+       │                    │                    │ Transform &        │
+       │                    │                    │ validate           │
+       │                    │                    │                    │
+       │                    │                    │ bulk index ───────►│
+       │                    │                    │                    │ searchable
+       │                    │                    │                    │
+       │                    │ fail → DLQ         │                    │
+       │                    │◄───────────────────┤                    │
+       │                    │ (retry sau / alert)│                    │
+                    </div>
+
+                    <p><strong>Tại sao serverless?</strong> Crawl chạy 4 lần/ngày, mỗi lần ~30 phút — EC2 24/7 lãng phí 95% thời gian. Lambda chỉ tính tiền khi chạy, SQS tự động scale concurrent executions, DLQ bắt mọi failure.</p>
+
+                    <p><strong>Tại sao Puppeteer?</strong> Nhiều trang dùng SPA (React/Vue) — HTTP request thuần chỉ nhận HTML skeleton, không có product data. Puppeteer chạy headless Chrome, đợi JS render xong mới extract.</p>
+
+                    <div class="solution-box">
+                        <h4>✅ Monitoring với CloudWatch:</h4>
+                        <ul>
+                            <li>Lambda metrics: duration, errors, throttles, concurrent executions</li>
+                            <li>SQS metrics: queue depth, messages in flight, DLQ count</li>
+                            <li>Custom metrics: products crawled/giờ, success rate, index latency</li>
+                            <li>Alarms: DLQ &gt; 0 → alert; Lambda error rate &gt; 5% → alert</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== PART 5: CHALLENGES ===== -->
+    <section id="challenges">
+        <h2>⚡ Phần 5 — Cross-cutting Challenges & Growth (8 phút)</h2>
+
+        <div class="qa-block">
+            <div class="interviewer">
+                <div class="avatar">👨‍💼</div>
+                <div class="bubble">
+                    <div class="name">Interviewer</div>
+                    <p><strong>Q8:</strong> Bạn đã làm việc với nhiều tech stack: Java Spring Boot, PHP Laravel, Go, AWS Serverless. Đây là advantage hay disadvantage? Và khi nào bạn quyết định chọn ngôn ngữ/framework nào cho một vấn đề cụ thể?</p>
+                </div>
+            </div>
+
+            <div class="candidate-response">
+                <div class="avatar">🧑‍💻</div>
+                <div class="bubble">
+                    <div class="name">Thái Đông</div>
+                    <p><strong>Đây là advantage rõ ràng, nhưng cần có chiều sâu:</strong></p>
+                    <p>Mỗi lựa chọn đều có lý do cụ thể, không phải thích gì dùng nấy:</p>
+
+                    <table>
+                        <tr><th>Scenario</th><th>Chọn</th><th>Lý do</th></tr>
+                        <tr>
+                            <td>CRUD-heavy admin, rapid prototyping</td>
+                            <td><strong>Laravel</strong></td>
+                            <td>Eloquent ORM, Blade, artisan commands — ship nhanh</td>
+                        </tr>
+                        <tr>
+                            <td>Enterprise, domain logic phức tạp</td>
+                            <td><strong>Spring Boot</strong></td>
+                            <td>Strong typing, DI container, DDD support tốt</td>
+                        </tr>
+                        <tr>
+                            <td>High-concurrency, low-latency service</td>
+                            <td><strong>Go</strong></td>
+                            <td>Goroutines, compiled, minimal memory footprint</td>
+                        </tr>
+                        <tr>
+                            <td>Batch job, traffic không đều</td>
+                            <td><strong>Lambda (Node.js)</strong></td>
+                            <td>Pay-per-use, auto-scale, không cần quản lý server</td>
+                        </tr>
+                    </table>
+
+                    <p><strong>Nguyên tắc của em:</strong></p>
+                    <ul>
+                        <li><strong>"Right tool for the right job"</strong> — không ép 1 ngôn ngữ cho mọi bài toán</li>
+                        <li><strong>Team context quan trọng:</strong> Nếu team chưa biết Go, không nên dùng Go chỉ vì nó nhanh. Training cost cũng là cost</li>
+                        <li><strong>Core concepts transferable:</strong> DDD, SOLID, design patterns — áp dụng được ở mọi ngôn ngữ. Em học DDD trong Spring Boot rồi apply sang Laravel được ngay</li>
+                    </ul>
+
+                    <div class="warning">
+                        <strong>⚠️ Điểm em tự nhận là cần cải thiện:</strong>
+                        <ul>
+                            <li>Go còn mới (bắt đầu từ PREP) — cần học sâu hơn về Go-specific patterns (channels, context propagation, error wrapping)</li>
+                            <li>Cần nâng cao hơn về distributed systems theory (consensus algorithms, CAP theorem trong thực tế)</li>
+                            <li>Observability stack — đã làm CloudWatch nhưng muốn học sâu hơn Prometheus + Grafana + distributed tracing</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== PART 6: SYSTEM DESIGN ===== -->
+    <section id="system-design">
+        <h2>🏗️ Phần 6 — System Design Question (10 phút)</h2>
+
+        <div class="qa-block">
+            <div class="interviewer">
+                <div class="avatar">👨‍💼</div>
+                <div class="bubble">
+                    <div class="name">Interviewer</div>
+                    <p><strong>Q9:</strong> Dựa trên kinh nghiệm tại PREP, nếu được yêu cầu design một <strong>Online Examination Platform</strong> có thể phục vụ <strong>50.000 thí sinh đồng thời</strong> (gấp 10x hiện tại), bạn sẽ design như thế nào? Focus vào những quyết định kiến trúc quan trọng nhất.</p>
+                </div>
+            </div>
+
+            <div class="candidate-response">
+                <div class="avatar">🧑‍💻</div>
+                <div class="bubble">
+                    <div class="name">Thái Đông</div>
+
+                    <p><strong>Clarify requirements trước:</strong></p>
+                    <ul>
+                        <li>50.000 concurrent candidates = peak load khi kỳ thi bắt đầu và kết thúc</li>
+                        <li>Mỗi candidate gửi ~20 events/phút (anti-cheat) + 1 submission cuối</li>
+                        <li>Zero tolerance cho mất bài thi</li>
+                        <li>Anti-cheating real-time</li>
+                        <li>Score có trong &lt;5 phút sau nộp bài</li>
+                    </ul>
+
+                    <div class="architecture-diagram">
+┌──────────────────────────────────────────────────────────────┐
+│            CDN (CloudFront / Fastly)                          │
+│         Static assets, Exam UI (React SPA)                   │
+└──────────────────────────┬───────────────────────────────────┘
+                           │
+┌──────────────────────────┴───────────────────────────────────┐
+│         Load Balancer (ALB/NGINX) + WAF + Rate Limiting       │
+└────┬──────────────────┬──────────────────┬────────────────────┘
+     │                  │                  │
+┌────┴──────┐  ┌────────┴──────┐  ┌───────┴───────┐
+│WebSocket  │  │  Exam API     │  │  Mgmt API     │
+│Gateway(Go)│  │  (Go)         │  │  (Laravel)    │
+│           │  │               │  │               │
+│- Events   │  │- Bắt đầu thi  │  │- Khoá học     │
+│  anti-    │  │- Lấy câu hỏi  │  │- Người dùng   │
+│  cheat    │  │- Nộp bài      │  │- Cấu hình B2B │
+│- Sync     │  │- Auto-save    │  │- Báo cáo      │
+│  timer    │  │               │  │               │
+└────┬──────┘  └────────┬──────┘  └───────┬───────┘
+     │                  │                  │
+     └──────────────────┴──────────────────┘
+                         │
+┌────────────────────────┴──────────────────────────────────────┐
+│              Kafka Cluster (3 brokers, replication=3)          │
+│                                                               │
+│  exam.submitted   (50 partitions,  acks=all)                  │
+│  cheat.events    (100 partitions,  key=examId+candidateId)    │
+│  autosave.data   (100 partitions)                             │
+│  score.calculated (50 partitions)                             │
+└──────────┬────────────────────┬──────────────────────────────┘
+           │                    │
+┌──────────┴──────┐    ┌────────┴────────────┐
+│ Anti-Cheat Svc  │    │  Scoring Pipeline    │
+│ (Go, 20 replicas│    │  (Go, 10 replicas)   │
+│                 │    │                      │
+│ Redis buffer    │    │  Auto-grade          │
+│ Rules engine    │    │  Batch 500 subs      │
+└─────────────────┘    └──────────────────────┘
+
+┌──────────────────────────────────────────────────────────────┐
+│                      Data Layer                              │
+│                                                              │
+│  PostgreSQL              Redis Cluster      Object Storage   │
+│  (Primary + 2 Read       (6 nodes)          (S3)             │
+│   Replicas)                                                  │
+│  Shard by exam_id        - Cheat buffer     - Đề thi         │
+│                          - Session          - Bài nộp        │
+│                          - Auto-save        - Audit logs     │
+│                          - Exam cache                        │
+└──────────────────────────────────────────────────────────────┘
+                    </div>
+
+                    <div class="deep-dive">
+                        <h4>🎯 Quyết định kiến trúc 1: WebSocket Gateway tách riêng</h4>
+                        <p><strong>Tại sao?</strong> 50K candidates × 20 events/phút = ~1M events/phút chỉ riêng anti-cheat. WebSocket connections là long-lived và memory-intensive. Tách riêng để:</p>
+                        <ul>
+                            <li>Scale WebSocket layer độc lập với REST API layer</li>
+                            <li>Go WebSocket server có thể giữ 50K connections với ~2–4 GB RAM</li>
+                            <li>Nếu WebSocket service restart, exam API vẫn hoạt động bình thường</li>
+                        </ul>
+                    </div>
+
+                    <div class="deep-dive">
+                        <h4>🎯 Quyết định kiến trúc 2: Auto-save qua Redis (không qua DB trực tiếp)</h4>
+                        <pre><code>// 50K candidates × 1 save/30s = ~1.700 writes/giây
+// → Nếu save thẳng DB = overwhelm PostgreSQL
+
+// SOLUTION: Save vào Redis, flush vào DB mỗi 5 phút
+func (s *AutoSaveService) SaveProgress(ctx context.Context, req AutoSaveRequest) error {
+    key := fmt.Sprintf("autosave:%s:%s", req.ExamID, req.CandidateID)
+    data, _ := json.Marshal(req.Answers)
+    // Redis SET — O(1), < 1ms
+    return s.redis.Set(ctx, key, data, 2*time.Hour).Err()
+}
+
+// Background job: flush Redis → PostgreSQL mỗi 5 phút
+func (s *AutoSaveService) FlushToDB(ctx context.Context) {
+    keys, _ := s.redis.Keys(ctx, "autosave:*").Result()
+    batch := make([]ExamProgress, 0, len(keys))
+    // ... parse all keys ...
+    s.repo.BulkUpsert(ctx, batch) // 1 round-trip thay vì 50K round-trips
+}</code></pre>
+                    </div>
+
+                    <div class="deep-dive">
+                        <h4>🎯 Quyết định kiến trúc 3: Xử lý "thundering herd" khi hết giờ</h4>
+                        <p><strong>Vấn đề:</strong> Khi 50K thí sinh hết giờ cùng lúc → spike submit cực lớn</p>
+                        <pre><code>// Solution: Staggered auto-submit với random jitter
+func (s *ExamService) ScheduleAutoSubmit(examID string, endsAt time.Time) {
+    candidates, _ := s.repo.GetCandidatesByExam(examID)
+
+    for _, c := range candidates {
+        // Random jitter: 0–30 giây — trải đều spike thành 30s window
+        jitter := time.Duration(rand.Intn(30)) * time.Second
+        submitAt := endsAt.Add(jitter)
+
+        s.scheduler.Schedule(submitAt, func() {
+            s.AutoSubmitIfNotDone(examID, c.ID)
+        })
+    }
+    // Client hiển thị "Hết giờ" ngay, nhưng actual submit được trải đều
+    // → Giảm peak load từ 50K/s xuống ~1.700/s
+}</code></pre>
+                    </div>
+
+                    <div class="metrics">
+                        <div class="metric-card"><div class="metric-value">50K</div><div class="metric-label">Concurrent Candidates</div></div>
+                        <div class="metric-card"><div class="metric-value">&lt;300ms</div><div class="metric-label">P95 API Latency</div></div>
+                        <div class="metric-card"><div class="metric-value">1M+</div><div class="metric-label">Events/phút</div></div>
+                        <div class="metric-card"><div class="metric-value">99.99%</div><div class="metric-label">Zero Lost Submissions</div></div>
+                    </div>
+
+                    <div class="tip">
+                        <strong>💡 Trade-offs và Justification:</strong>
+                        <ul>
+                            <li><strong>WebSocket tách riêng:</strong> Tăng ops complexity nhưng cần thiết cho isolation và independent scaling</li>
+                            <li><strong>Redis auto-save:</strong> Có thể mất tối đa 5 phút data nếu Redis crash, nhưng acceptable vì có client-side backup</li>
+                            <li><strong>100 Kafka partitions:</strong> Overkill cho ngày thường nhưng cần cho peak. Cost là disk space (chấp nhận được)</li>
+                            <li><strong>Staggered submit:</strong> User thấy "Đang nộp bài..." thêm 0–30 giây, nhưng hệ thống ổn định hơn nhiều</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== SUMMARY ===== -->
+    <section>
+        <h2>📝 Tổng kết & Đánh giá</h2>
+
+        <div class="project-header">
+            <h3>✅ Interview Assessment</h3>
+            <table style="margin-top: 20px;">
+                <tr><th>Tiêu chí</th><th>Đánh giá</th><th>Nhận xét</th></tr>
+                <tr>
+                    <td><strong>Domain Knowledge</strong></td>
+                    <td><span style="color:#50fa7b;">⭐⭐⭐⭐⭐ Strong</span></td>
+                    <td>Đa dạng: EdTech, Enterprise, Digital Transformation, Data Pipeline</td>
+                </tr>
+                <tr>
+                    <td><strong>Architecture & Design</strong></td>
+                    <td><span style="color:#50fa7b;">⭐⭐⭐⭐⭐ Strong</span></td>
+                    <td>DDD, Hexagonal, Event-Driven — hiểu trade-offs và áp dụng đúng context</td>
+                </tr>
+                <tr>
+                    <td><strong>Technical Depth</strong></td>
+                    <td><span style="color:#50fa7b;">⭐⭐⭐⭐ Good</span></td>
+                    <td>Multi-language, hiểu sâu concurrency, caching, messaging. Go còn đang phát triển</td>
+                </tr>
+                <tr>
+                    <td><strong>Problem Solving</strong></td>
+                    <td><span style="color:#50fa7b;">⭐⭐⭐⭐⭐ Strong</span></td>
+                    <td>Deadlock resolution, anti-cheat design, overselling prevention — giải quyết vấn đề thực tế</td>
+                </tr>
+                <tr>
+                    <td><strong>Communication</strong></td>
+                    <td><span style="color:#50fa7b;">⭐⭐⭐⭐⭐ Strong</span></td>
+                    <td>Giải thích rõ ràng, có diagram, biết nói về trade-offs một cách trung thực</td>
+                </tr>
+                <tr>
+                    <td><strong>Self-awareness</strong></td>
+                    <td><span style="color:#50fa7b;">⭐⭐⭐⭐⭐ Strong</span></td>
+                    <td>Nhận biết điểm cần cải thiện (Go depth, distributed systems theory)</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="tip">
+            <strong>💪 Điểm mạnh nổi bật:</strong>
+            <ul>
+                <li>Kinh nghiệm thực tế với event-driven architecture, Kafka, Redis across multiple projects</li>
+                <li>Hiểu và áp dụng DDD + Hexagonal Architecture để cải thiện maintainability</li>
+                <li>Đã xử lý production issues (deadlocks, performance bottlenecks) — không chỉ lý thuyết</li>
+                <li>Multi-language capability với lý do rõ ràng cho mỗi lựa chọn</li>
+                <li>System design thinking tốt: biết dùng Redis buffer thay vì Kafka trực tiếp cho high-frequency events</li>
+            </ul>
+        </div>
+
+        <div class="warning">
+            <strong>⚠️ Cần chuẩn bị thêm trước khi phỏng vấn thật:</strong>
+            <ul>
+                <li>Chuẩn bị metrics cụ thể (số lượng users, TPS, latency p95/p99) từ các dự án thực tế để tăng tính thuyết phục</li>
+                <li>Học sâu hơn về Saga pattern: orchestration vs choreography, Outbox pattern</li>
+                <li>Thực hành thêm system design questions ở scale lớn hơn (100K+ concurrent)</li>
+                <li>Tìm hiểu thêm distributed tracing (Jaeger/Zipkin) và Prometheus + Grafana stack</li>
+                <li>Ôn lại Go-specific patterns: channels, context propagation, error wrapping conventions</li>
+            </ul>
+        </div>
+
+        <div style="margin-top: 30px; background: rgba(80,250,123,0.1); border: 2px solid #50fa7b; border-radius: 12px; padding: 25px;">
+            <h3 style="color: #50fa7b; margin-bottom: 15px;">🎯 Kết luận: STRONG HIRE — Senior Backend Engineer</h3>
+            <p style="line-height: 1.8;">
+                Ứng viên thể hiện <strong>chiều sâu kỹ thuật</strong> tốt và <strong>kinh nghiệm thực tế</strong> đa dạng.
+                Đặc biệt ấn tượng với khả năng giải quyết production incidents (deadlock), thiết kế hệ thống real-time (anti-cheating),
+                và áp dụng DDD/Hexagonal Architecture có chủ đích, không phải áp dụng vì trào lưu.
+                <br><br>
+                Phù hợp cho vị trí <strong>Senior Backend Engineer</strong>. Có tiềm năng phát triển thành <strong>Tech Lead</strong>
+                khi Go experience và distributed systems knowledge trưởng thành hơn.
+            </p>
+        </div>
+    </section>
+
+    <footer style="text-align:center; padding:40px; color:#888; margin-top: 50px;">
+        <p style="font-size: 1.2em; color: #ffd700; margin-bottom: 15px;">🎯 Mock Interview Hoàn thành</p>
+        <p style="margin: 10px 0;">Deep Dive Edition — EdTech · Enterprise · Digital Transformation</p>
+        <p style="margin: 10px 0;">Tổng thời gian: ~90 phút</p>
+        <p style="margin-top: 20px; color: #50fa7b; font-weight: bold;">Chúc Thái Đông phỏng vấn thành công! 💪</p>
+    </footer>
+
+</div>
+</body>
+</html>
