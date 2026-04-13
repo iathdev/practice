@@ -132,6 +132,52 @@ Theo thứ tự, chỉ thêm khi cần:
    → Nhưng ops phức tạp hơn nhiều
 ```
 
+**Tại sao Kafka + ClickHouse khi scale lớn?**
+
+**Kafka** thay Redis buffer:
+- Redis list không có consumer group — 1 consumer đọc, không scale ngang được
+- Kafka có partition → nhiều consumer đọc song song → scale ingestion tuyến tính
+- Kafka giữ message lâu dài (days/weeks) → replay được nếu bug trong rule engine
+
+**ClickHouse** thay TimescaleDB:
+
+```
+TimescaleDB (PostgreSQL):
+  → Row-based storage
+  → Query tốt khi cần JOIN, transaction
+  → Giới hạn ở ~100M rows/query trước khi chậm
+
+ClickHouse:
+  → Columnar storage — chỉ đọc column cần thiết
+  → Vectorized execution — xử lý theo batch, tận dụng CPU cache
+  → Compression tốt hơn 5-10x so với row-based
+  → Query 1 tỷ rows trong vài giây
+```
+
+Ví dụ cụ thể với anti-cheat:
+
+```sql
+-- Query: đếm tab_switch của tất cả thí sinh trong 1 kỳ thi
+-- TimescaleDB: scan rows, lọc event_type
+-- ClickHouse: chỉ đọc column event_type + session_id → nhanh hơn 10-50x
+SELECT session_id, count(*)
+FROM exam_events
+WHERE event_type = 'tab_switch'
+GROUP BY session_id
+```
+
+**Trade-off:**
+
+| | TimescaleDB | ClickHouse |
+|---|---|---|
+| Query tốc độ | Tốt đến ~100M rows | Tốt đến hàng tỷ rows |
+| JOIN | Tốt (PostgreSQL) | Hạn chế |
+| Ops complexity | Thấp — PostgreSQL extension | Cao — cluster riêng |
+| Transaction | Có | Không |
+| Phù hợp khi | < 50K concurrent | > 50K concurrent |
+
+**Kết luận:** TimescaleDB đủ cho 10K thí sinh. Chỉ chuyển ClickHouse khi scale lên 50K+ và query analytics thực sự trở thành bottleneck.
+
 ---
 
 ## 2. Thử thách 2: Buffer Overflow — Redis đầy thì sao?
@@ -248,26 +294,50 @@ Drop silently:
   ✓ Phần lớn events sẽ được gửi lại thành công khi buffer giảm
 ```
 
-### Layer 3 (con người, manual): Redis memory alarm
+### Layer 3: Redis memory alarm + auto-scale
 
 ```
 Redis server có giới hạn memory (maxmemory), ví dụ 2GB.
 
 Monitor liên tục:
-  Redis used_memory: 400MB / 2GB (20%)     ← OK, không cần làm gì
-  Redis used_memory: 1.4GB / 2GB (70%)     ← ⚠️ ALERT gửi cho ops team
+  Redis used_memory: 400MB / 2GB (20%)     ← OK
+  Redis used_memory: 1.4GB / 2GB (70%)     ← ⚠️ trigger scale up
+  Redis used_memory: 1.0GB / 2GB (50%)     ← trigger scale down
 
-Tại sao alert ở 70% chứ không phải 90%?
+Tại sao 70% chứ không phải 90%?
   → Peak traffic có thể đẩy từ 70% → 100% trong vài phút
-  → Alert sớm → ops có thời gian xử lý TRƯỚC KHI tràn
+  → Alert/trigger sớm → xử lý TRƯỚC KHI tràn
+```
 
-Ops nhận alert → 2 lựa chọn:
+**Managed Redis (AWS ElastiCache, GCP Memorystore):**
+```
+memory > 70% → tự động thêm shard vào Redis Cluster
+memory < 50% → tự động remove shard
+
+→ Không cần ops làm tay
+→ Re-shard diễn ra tự động, online
+```
+
+**Self-hosted Redis:**
+```
+memory > 70% → alert gửi ops team → làm tay:
   1. Tăng maxmemory (nếu server còn RAM):  CONFIG SET maxmemory 4gb
-  2. Scale Redis (nếu hết RAM):            thêm Redis instance
+  2. Thêm node vào Redis Cluster → re-shard (mất vài chục phút)
 
-Nếu KHÔNG có layer này:
-  Redis đạt maxmemory → reject writes → mất events
-  → Không ai biết → đến khi user report → đã muộn
+→ Chậm hơn managed, nhưng kiểm soát hoàn toàn
+```
+
+| | Managed | Self-hosted |
+|---|---|---|
+| Scale up | Tự động (~vài phút) | Tay (~vài chục phút) |
+| Scale down | Tự động | Tay |
+| Chi phí | Cao hơn | Thấp hơn |
+| Ops effort | Thấp | Cao |
+
+Nếu KHÔNG có layer này (dù managed hay self-hosted):
+```
+Redis đạt maxmemory → reject writes → mất events
+→ Không ai biết → đến khi user report → đã muộn
 ```
 
 ### 3 layers hoạt động cùng nhau
@@ -308,39 +378,107 @@ Redis down → 2 thứ mất cùng lúc:
 
 ### Giải pháp: Circuit Breaker + Graceful Degradation
 
-```
-Redis available (normal mode):
-  ┌──────────────────────────────────────────────┐
-  │ Event → Real-time check (Redis) → Buffer (Redis) → DB │
-  └──────────────────────────────────────────────┘
+#### Bước 1 — Circuit Breaker phát hiện Redis down
 
-Redis down (degraded mode):
-  ┌──────────────────────────────────────────────┐
-  │ Event → Skip real-time check → INSERT trực tiếp DB    │
-  │         (log warning)          (chậm hơn nhưng không   │
-  │                                 mất data)              │
-  └──────────────────────────────────────────────┘
+```
+Service gọi Redis → timeout hoặc connection refused
+  → Retry 3 lần trong 1 giây → vẫn fail
+  → Circuit breaker OPEN → chuyển sang degraded mode
+  → Không retry Redis nữa (tránh cascade failure)
+
+Circuit breaker tự động close lại:
+  → Mỗi 30 giây probe 1 request vào Redis
+  → Thành công → close circuit → resume normal mode
 ```
 
-**Chi tiết degraded mode:**
+#### Bước 2 — Degraded mode: bỏ Redis, ghi thẳng DB
+
+```
+Normal mode:
+  Event → Real-time check (Redis Lua) → LPUSH buffer → flush batch → DB
+
+Degraded mode (Redis down):
+  Event → Skip real-time check → INSERT DB trực tiếp
+          (log warning)          (chậm hơn nhưng không mất data)
+```
+
+#### Bước 3 — Alert ops đồng thời
+
+```
+Circuit breaker open → gửi alert ngay (PagerDuty/Slack)
+  → Ops điều tra: Redis crash? OOM? Network partition?
+  → Fix Redis → circuit breaker tự detect → resume
+```
+
+#### Bước 4 — Recovery
+
+```
+Redis recover → circuit breaker close → normal mode
+  → Events đã INSERT trực tiếp DB → Lớp 2 phân tích bình thường
+  → Real-time counters reset về 0 → start fresh
+    (chấp nhận: window bị mất ngắn, Lớp 2 bù lại)
+```
+
+**Chi tiết so sánh 2 mode:**
 
 | Thành phần | Normal | Degraded |
 |-----------|--------|----------|
 | Event ingestion | LPUSH Redis (0.1ms) | INSERT DB trực tiếp (5-50ms) |
 | Real-time check | Redis INCR + Lua (< 1ms) | Skip (log warning) |
 | Batch analysis | Từ TimescaleDB (không đổi) | Từ TimescaleDB (không đổi) |
-| Latency cho client | < 1ms | 5-50ms |
+| Latency cho client | ~0.1ms | 5-50ms |
 | Detection coverage | Lớp 1 + Lớp 2 | Chỉ Lớp 2 |
 
 **Trade-off chấp nhận được:**
-- Mất Lớp 1 real-time check → devtools_open, automation_signal bắt trễ hơn (60s thay vì < 1s)
-- Client chậm hơn (5-50ms thay vì 0.1ms) → nhưng exam vẫn hoạt động
-- Data không mất → Lớp 2 batch analysis vẫn bắt pattern
+- Mất Lớp 1 real-time check → gian lận bắt trễ hơn (60s thay vì < 1s)
+- Client chậm hơn (5-50ms) → nhưng exam vẫn hoạt động, không block thí sinh
+- Data không mất → Lớp 2 batch analysis vẫn bắt pattern sau kỳ thi
 
-**Recovery:**
-- Redis recover → circuit breaker close → resume normal mode
-- Events đã INSERT trực tiếp DB → Lớp 2 phân tích bình thường
-- Real-time counters reset → start fresh (chấp nhận, window ngắn)
+> **Nguyên tắc:** Anti-cheat down ≠ exam down. Thà mất detection tạm thời còn hơn thí sinh không thi được.
+
+#### Bước 5 — Nếu ghi thẳng DB cũng quá tải?
+
+Degraded mode INSERT trực tiếp DB, nhưng 20K INSERT/giây riêng lẻ vượt quá DB capacity.
+
+**Giải pháp: Micro-batching trong service memory**
+
+```
+Thay vì: Event → INSERT DB (ngay lập tức)
+
+Micro-batch:
+  Event → In-memory queue
+              ↓
+  Mỗi 200ms hoặc đủ 1000 events:
+              ↓
+  COPY batch → DB  (tương tự normal mode, nhưng interval ngắn hơn)
+```
+
+**Adaptive 429 khi DB vẫn chậm:**
+
+```
+Đo DB write latency liên tục:
+  < 50ms    → bình thường
+  50-200ms  → giảm micro-batch interval → flush batch nhỏ hơn, nhanh hơn
+  > 200ms   → reject 429 → JS SDK giữ tạm local buffer, retry sau 5s
+```
+
+**Tại sao không fallback thêm xuống disk?**
+
+```
+Local disk file thêm: disk IO bottleneck + format phức tạp + crash = mất data anyway
+→ Redis down + DB slow = double failure = critical alert → ops phải fix ngay
+→ Không thiết kế để kéo dài double failure, chỉ cần không mất data trong vài phút chờ fix
+```
+
+**Bảng so sánh đầy đủ:**
+
+| Thành phần | Normal | Degraded (Redis down) | Degraded + DB slow |
+|-----------|--------|-----------------------|--------------------|
+| Ingestion | LPUSH Redis (0.1ms) | INSERT DB trực tiếp (5-50ms) | Micro-batch 200ms → COPY |
+| Buffer | Redis (persistent) | In-memory (mất khi crash) | In-memory + reject 429 |
+| Mất data khi crash | Không | Tối đa 200ms events | Tối đa 200ms events |
+| Real-time check | Có | Không | Không |
+| Throughput | 100K+ events/s | ~5K INSERT/s | ~20K events/s (batched) |
 
 ---
 
@@ -423,6 +561,15 @@ Thí sinh bị flag → Admin review → Void
 
 ## 5. Thử thách 5: Flush Fail — DB down giữa chừng
 
+### Tổng hợp nhanh
+
+| DB down lúc nào | Hậu quả | Giải pháp |
+|---|---|---|
+| Event đang ghi vào Redis buffer | Không ảnh hưởng — Redis vẫn nhận | Redis làm buffer, decouple khỏi DB |
+| Flush đang chạy, DB chết giữa chừng | Events chưa insert nằm trong `processing` list | RPOPLPUSH — crash ở đâu cũng tìm lại trong `processing`, retry |
+| INSERT xong, DEL processing chưa chạy | Flush sau insert lại → duplicate | `ON CONFLICT DO NOTHING` — idempotent |
+| Redis down, đang ghi thẳng DB | 20K INSERT/s → DB quá tải | Micro-batch 200ms → COPY, adaptive 429 |
+
 ### Bài toán
 
 ```
@@ -471,6 +618,14 @@ Giải pháp:
 ---
 
 ## 6. Thử thách 6: Event Order — Events đến không đúng thứ tự
+
+### Tổng hợp nhanh
+
+| Tình huống | Vấn đề | Giải pháp |
+|---|---|---|
+| Real-time (Lớp 1) nhận event lộn xộn | Counter chỉ đếm số lượng, không quan tâm thứ tự | Không cần xử lý — đếm là đủ |
+| Batch (Lớp 2) phân tích pattern theo thứ tự | `arrival time` ≠ `event time` → sai timeline | `ORDER BY timestamp` (client time), không dùng `created_at` |
+| Client clock sai hoặc bị tamper | Timestamp giả → bypass detection | Server so sánh `timestamp` vs `received_at`, drift > 5s → flag |
 
 ### Bài toán
 
@@ -561,6 +716,18 @@ Lockdown browser = Lớp 3 (cần install phần mềm)
 ---
 
 ## 8. Thử thách 8: Niềm tin B2B — Tài sản quan trọng nhất
+
+### Tổng hợp nhanh
+
+**B2B khác B2C:** Void nhầm 1 thí sinh → mất cả hợp đồng → mất hàng trăm/ngàn users. Nên B2B optimize cho **trust**, không phải detection rate.
+
+| Trụ cột | Làm gì | Tại sao |
+|---|---|---|
+| **Transparency** | Admin dashboard: real-time stats, evidence từng detection, export report | Black box → đối tác nghi ngờ. Nhìn thấy = tin tưởng |
+| **Configurable** | Đối tác tự chỉnh threshold, bật/tắt auto-void | Đối tác quyết định = đối tác chịu trách nhiệm |
+| **Audit Trail** | Lưu toàn bộ events 1 năm, detections vĩnh viễn, mọi admin action | Bằng chứng pháp lý cho tranh chấp, compliance |
+| **SLA** | 99.9% uptime, anti-cheat down ≠ exam down | Đối tác ký hợp đồng cần cam kết cụ thể |
+| **Feedback Loop** | Admin review → confirm/dismiss → tune threshold → report hàng tháng | Mỗi false positive = cơ hội cải thiện rule |
 
 ### Tại sao B2B khác B2C?
 

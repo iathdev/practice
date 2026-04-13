@@ -18,6 +18,97 @@
 
 ---
 
+## Tech Stack & Lý do lựa chọn
+
+### Tại sao Golang?
+
+Golang phù hợp với bài toán này vì **concurrency model của Go khớp tự nhiên với pipeline architecture**.
+
+> **Pipeline architecture** = chuỗi các bước xử lý nối tiếp, mỗi bước làm 1 việc, chạy độc lập song song — giống dây chuyền sản xuất:
+> ```
+> Event → [Receive] → [Buffer] → [Flush] → [Detect] → [Alert]
+> ```
+> Ingestion goroutine không chờ flush xong. Flush goroutine không chờ rule engine xong. Mỗi bước chạy theo tốc độ của chính nó.
+
+**Goroutine** — ingestion và flush chạy song song, không block nhau:
+```
+Ingestion goroutine:  nhận events → LPUSH Redis  (chạy liên tục)
+Flush goroutine:      mỗi 60s → RPOPLPUSH → INSERT DB  (chạy song song)
+```
+Java cần thread pool + executor phức tạp hơn. Go chỉ cần `go func()`.
+
+**`context`** — graceful shutdown tự nhiên:
+```go
+ctx, cancel := signal.NotifyContext(ctx, syscall.SIGTERM)
+// flush goroutine lắng nghe ctx.Done() → final flush trước khi thoát
+```
+Cancel 1 chỗ → toàn bộ pipeline dừng đúng thứ tự → không mất event khi deploy.
+
+**`select` + `ticker`** — adaptive flush interval gọn:
+```go
+select {
+case <-time.After(interval):  // flush định kỳ
+case <-bufferFullSignal:       // flush ngay khi buffer đầy
+case <-ctx.Done():             // graceful shutdown
+}
+```
+
+| | Go | Java/Spring |
+|---|---|---|
+| Concurrency | Goroutine nhẹ (~4KB) | Thread nặng (~1MB) |
+| GC pause | Nhỏ, < 1ms | Stop-the-world có thể > 10ms |
+| Graceful shutdown | Built-in context + signal | Cần ShutdownHook + phức tạp hơn |
+| Memory footprint | Thấp, binary nhỏ | JVM overhead |
+| Real-time check < 1ms | Đáp ứng tốt | Khó đảm bảo vì GC |
+
+---
+
+### Tại sao dùng Event Buffer (Redis)?
+
+Bài toán: 10,000 thí sinh × ~2 events/giây = **20,000 events/giây**. Không thể ghi thẳng vào DB.
+
+```
+Không có buffer:
+  Event → DB INSERT trực tiếp
+  → 20K concurrent writes → DB quá tải → latency tăng → có thể down
+  → DB down = MẤT EVENT
+
+Có Redis buffer:
+  Event → Redis (100K+ ops/s) → flush batch mỗi 60s → DB
+  → Ingestion và DB write hoàn toàn độc lập (decouple)
+  → DB down → events vẫn nằm trong Redis, không mất
+```
+
+**3 lợi ích cốt lõi:**
+
+| Lợi ích | Giải thích |
+|---|---|
+| Decouple | Ingestion tốc độ Redis, DB write tốc độ DB — không phụ thuộc nhau |
+| Absorb burst | Peak traffic đổ vào Redis trước, DB xử lý theo pace của mình |
+| Crash safety | DB down → events giữ trong Redis → recover xong flush tiếp |
+
+---
+
+### Cơ chế cache: Write-back (Write-behind)
+
+Redis buffer trong hệ thống này hoạt động theo pattern **write-back**:
+
+```
+Write-through:                      Write-back (anti-cheat):
+Event → Redis + DB đồng thời        Event → Redis trước (ack ngay)
+        (sync, chờ cả 2)                    ↓ async, 60s sau
+                                            DB (batch flush)
+```
+
+**Tại sao write-back chứ không phải write-through?**
+- Write-through: client phải chờ DB write → latency cao → exam bị lag
+- Write-back: client chỉ chờ Redis (~0.1ms) → ack ngay → exam mượt
+
+**Risk của write-back:** Redis crash trước khi flush → mất data.
+**Giảm thiểu bằng:** `events:processing` pattern + idempotent insert (UUID v7 + ON CONFLICT DO NOTHING).
+
+---
+
 ## 1. Bối cảnh & Yêu cầu
 
 ### Dự án
@@ -1017,3 +1108,22 @@ handler → realtime/checker (Lớp 1, sync)
 ### "Tại sao 2 lớp detection?"
 
 > "Lớp 1 bắt hành vi rõ ràng ngay (devtools, automation) — không cần context. Lớp 2 phân tích pattern cần cross-reference nhiều events (chuyển tab rồi đúng 8/8 câu) — cần data tích lũy trong DB. Tách 2 lớp vì latency requirement khác nhau: < 1ms vs 60 giây."
+
+---
+
+### "Tại sao chọn Golang thay vì PHP hay Java?"
+
+| | PHP | Java/Spring | Go |
+|---|---|---|---|
+| Concurrency | Mỗi request 1 process/thread — nặng | Thread nặng (~1MB), thread pool phức tạp | Goroutine nhẹ (~4KB), tạo hàng nghìn dễ dàng |
+| GC pause | Không có GC (request-scoped) | Stop-the-world có thể > 10ms | GC pause < 1ms — đảm bảo real-time check |
+| Long-running process | Không phù hợp — thiết kế request/response | Được, nhưng nặng | Phù hợp — binary chạy liên tục 24/7 |
+| Pipeline / background job | Cần thêm queue worker riêng (Laravel Queue) | Được nhưng boilerplate nhiều | Goroutine + channel built-in, gọn |
+| Graceful shutdown | Khó — không có lifecycle hook chuẩn | ShutdownHook có nhưng phức tạp | `context` + `signal.NotifyContext` tự nhiên |
+| Memory footprint | Thấp nhưng không có concurrency tốt | JVM overhead ~200MB+ khi start | Binary nhỏ, start nhanh, RAM thấp |
+| Startup time | Nhanh | Chậm (JVM warm-up) | Rất nhanh — phù hợp container/K8s |
+
+**Tóm lại:**
+- **PHP**: không phù hợp cho long-running service cần xử lý 20K events/giây liên tục
+- **Java**: được, nhưng GC pause có thể vi phạm SLA real-time < 1ms, boilerplate nhiều hơn
+- **Go**: goroutine + context + select khớp tự nhiên với pipeline architecture của bài toán này

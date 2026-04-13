@@ -9,10 +9,13 @@
 1. [Bối cảnh & Tại sao Offline-First?](#1-bối-cảnh--tại-sao-offline-first)
 2. [Kiến trúc tổng thể — Client-Heavy, Server-Verify](#2-kiến-trúc-tổng-thể--client-heavy-server-verify)
 3. [Client Storage — Lưu gì ở local?](#3-client-storage--lưu-gì-ở-local)
-4. [Exam Lifecycle — Từ tải đề đến nộp bài](#4-exam-lifecycle--từ-tải-đề-đến-nộp-bài)
-5. [Sync Protocol — Đồng bộ đáp án lên server](#5-sync-protocol--đồng-bộ-đáp-án-lên-server)
-6. [Data Model](#6-data-model)
-7. [Interview Quick Reference](#7-interview-quick-reference)
+4. [Bảo mật dữ liệu local — Đề thi & Đáp án](#4-bảo-mật-dữ-liệu-local--đề-thi--đáp-án)
+5. [Exam Lifecycle — Từ tải đề đến nộp bài](#5-exam-lifecycle--từ-tải-đề-đến-nộp-bài)
+6. [Sync Protocol — Đồng bộ liên tục](#6-sync-protocol--đồng-bộ-liên-tục)
+7. [Checkpoint Service — Điểm chạm](#7-checkpoint-service--điểm-chạm)
+8. [Cross-device Sync — Đổi thiết bị giữa chừng](#8-cross-device-sync--đổi-thiết-bị-giữa-chừng)
+9. [Data Model](#9-data-model)
+10. [Interview Quick Reference](#10-interview-quick-reference)
 
 ---
 
@@ -37,10 +40,11 @@ Thi online truyền thống (server-first):
   → Mất hợp đồng B2B
 
 Offline-first:
-  Toàn bộ đề thi tải trước → làm bài hoàn toàn local
-  Mất mạng 3 giây → thí sinh KHÔNG BIẾT (vẫn làm bài bình thường)
-  Mất mạng 30 phút → vẫn làm bài, đáp án lưu local
-  Có mạng lại → sync đáp án lên server (background)
+  Section đang thi tải trước → làm bài hoàn toàn local (Partial Reveal)
+  Có mạng → sync đáp án liên tục lên server (debounce 3s + interval 10s)
+  Mất mạng 3 giây → thí sinh KHÔNG BIẾT (vẫn làm bài, đáp án tích local)
+  Mất mạng 30 phút → vẫn làm bài, sync_queue tích lũy → flush khi có mạng
+  Chuyển section → force sync + tải section mới (cần online tại mốc này)
 
   → Trải nghiệm thi mượt mà bất kể chất lượng mạng
   → Đối tác tin tưởng
@@ -149,9 +153,9 @@ Offline-first:
 IndexedDB: "exam_db"
 │
 ├── Object Store: "exam_content"
-│   └── Toàn bộ đề thi (câu hỏi, đáp án choices, audio URLs, images)
-│   └── Tải 1 lần khi bắt đầu thi
-│   └── ~2-5 MB cho 1 bài thi IELTS (text + metadata)
+│   └── Section đang thi (Partial Reveal — không tải toàn bộ đề)
+│   └── Tải khi bắt đầu section, xóa khi section kết thúc
+│   └── ~0.5-1 MB per section (text + metadata)
 │
 ├── Object Store: "answers"
 │   └── Đáp án thí sinh đã chọn/nhập
@@ -206,7 +210,118 @@ Pre-download quan trọng vì:
 
 ---
 
-## 4. Exam Lifecycle — Từ tải đề đến nộp bài
+## 4. Bảo mật dữ liệu local — Đề thi & Đáp án
+
+### Vấn đề
+
+```
+IndexedDB đọc được qua DevTools (F12 → Application → IndexedDB):
+
+  exam_content → thí sinh xem trước câu hỏi section chưa tới
+  answers      → người khác ngồi cạnh đọc đáp án đã chọn
+
+Tải toàn bộ đề trước khi thi:
+  → Kỳ thi nhiều ca (sáng/chiều cùng đề)
+  → Thí sinh ca sáng thi xong → chia sẻ đề cho ca chiều
+  → Đề bị lộ trước khi ca chiều bắt đầu
+```
+
+### Giải pháp 1: Server-side Content Lock — Server kiểm soát nội dung
+
+Bảo mật thật sự phải đến từ **server**, không phải client. Client chạy trên máy thí sinh — mọi thao tác client-side đều có thể bị can thiệp.
+
+**Nguyên tắc:** Server chỉ trả nội dung section khi session đang ở đúng section đó. Client không thể lấy section 2 trước khi hoàn thành section 1, dù có cố tình gọi API.
+
+```
+Server kiểm tra mỗi request lấy content:
+  GET /exams/{id}/sections/2/content
+    → Server check: session.current_section == 2?
+    → Không → 403 Forbidden (dù token hợp lệ)
+    → Có → trả content
+
+Session chỉ advance khi checkpoint confirmed:
+  POST /exams/{id}/checkpoint { from: section_1, to: section_2 }
+    → Server: confirm sync + update session.current_section = 2
+    → Từ đây mới có thể lấy section 2 content
+```
+
+**Trade-off:**
+
+| | Tải toàn bộ | Server-side Lock |
+|---|---|---|
+| Bảo mật đề | Thấp — toàn bộ đề trong IndexedDB | Cao — server từ chối cấp content sai section |
+| Offline capability | Thi hoàn toàn offline | Cần online tại mốc chuyển section |
+| UX | Mượt mà | Delay tại mốc chuyển section nếu mất mạng |
+
+**Mất mạng khi chuyển section:**
+
+```
+Mất mạng TRONG section → vẫn làm bài bình thường (content đã có local)
+Mất mạng KHI CHUYỂN section → block tại đây:
+  → Hiện: "Đang đồng bộ và tải section tiếp theo..."
+  → Retry tự động khi có mạng
+  → Pre-fetch chạy ngầm khi còn 5 phút trong section hiện tại
+     → giảm thiểu trường hợp phải chờ
+```
+
+---
+
+### Giải pháp 2: Encrypt answers trong IndexedDB
+
+Bảo vệ đáp án khỏi **casual inspection** (người ngồi cạnh mở DevTools). Không phải bảo mật tuyệt đối — key vẫn có thể bị lấy từ memory nếu attacker đủ quyết tâm.
+
+Đáp án lưu local dạng mã hóa — đọc qua DevTools chỉ thấy ciphertext.
+
+```
+Session key = derive từ exam token (JWT):
+  key = HKDF(jwt_secret_portion, exam_id + user_id)
+  → Key chỉ tồn tại trong JS memory (biến), KHÔNG lưu vào IndexedDB
+  → Đóng tab / refresh → key mất → cần re-derive từ token
+
+Ghi đáp án:
+  answer_plaintext → AES-GCM encrypt (session key) → lưu IndexedDB
+
+Đọc đáp án:
+  ciphertext trong IndexedDB → AES-GCM decrypt (session key) → answer_plaintext
+```
+
+**Khi refresh / reopen tab:**
+
+```
+IndexedDB vẫn còn ciphertext (không mất)
+Session key mất (chỉ ở memory)
+  → Re-derive key từ exam token (vẫn còn hiệu lực)
+  → Decrypt lại đáp án → resume bình thường
+```
+
+**Giới hạn:**
+
+```
+Encrypt IndexedDB không chống được:
+  ✗ Thí sinh tự build tool để hook vào JS runtime → đọc key từ memory
+  ✗ Attacker có full OS access (malware)
+
+Chống được:
+  ✓ Người ngồi cạnh mở DevTools → chỉ thấy ciphertext
+  ✓ Dump IndexedDB file trực tiếp từ disk → vô nghĩa không có key
+  ✓ Extension độc hại đọc storage → không decrypt được
+```
+
+---
+
+### Tóm tắt
+
+| Mối đe dọa | Giải pháp | Mức độ bảo vệ |
+|---|---|---|
+| Xem trước câu hỏi section sau | Server lock — chỉ cấp content khi đúng section | Mạnh — server từ chối, không bypass được |
+| Lộ đề giữa các ca thi | Server lock theo session state + time-lock per section | Mạnh — phải có valid session đang ở đúng section |
+| Đọc đáp án qua DevTools | Encrypt IndexedDB bằng session key in-memory | Trung bình — chặn casual, không chặn attacker quyết tâm |
+| Lấy đáp án từ disk | Encrypt — key không lưu local | Trung bình — không decrypt được nếu không có token |
+| Chụp màn hình / ghi chép tay | Không thể ngăn bằng kỹ thuật | Cần camera proctoring |
+
+---
+
+## 5. Exam Lifecycle — Từ tải đề đến nộp bài
 
 ```
 Phase 1: AUTHENTICATE & PREPARE
@@ -215,29 +330,43 @@ Phase 1: AUTHENTICATE & PREPARE
 2. Token chứa: user_id, exam_id, start_time, duration, exam_version
 3. ★ BẮT BUỘC ONLINE ★ — không thể bắt đầu thi khi offline
 
-Phase 2: DOWNLOAD EXAM (online required)
+Phase 2: DOWNLOAD SECTION HIỆN TẠI (online required — Partial Reveal)
 ═══════════════════════════════════════
-4. GET /exams/{id}/content → exam content (câu hỏi, choices, audio refs)
-5. Lưu exam_content vào IndexedDB
-6. Download audio files → IndexedDB media_cache
-7. Lưu exam_state: { status: READY, downloaded_at, version }
-8. Verify: checksum exam content == server checksum
-   → Đảm bảo đề thi không bị corrupt khi download
-9. ★ Từ đây trở đi, client có thể hoạt động OFFLINE ★
+4. GET /exams/{id}/sections/current → nội dung section 1 (câu hỏi, choices)
+5. Lưu exam_content vào IndexedDB (chỉ section hiện tại)
+6. Download audio files section này → IndexedDB media_cache
+7. Lưu exam_state: { status: READY, current_section: 1, downloaded_at, version }
+8. Verify: checksum section content == server checksum
+9. Pre-fetch section tiếp theo khi còn 5 phút (tải ngầm)
+10. ★ Từ đây trở đi, client có thể hoạt động OFFLINE trong section này ★
 
-Phase 3: EXAM IN PROGRESS (offline-capable)
+Phase 3: EXAM IN PROGRESS (offline-capable trong section)
 ═══════════════════════════════════════
-10. Thí sinh bắt đầu làm bài
-11. Mỗi lần chọn/thay đổi đáp án:
-    a. Write → IndexedDB "answers" (immediate)
+11. Thí sinh bắt đầu làm bài
+12. Mỗi lần chọn/thay đổi đáp án:
+    a. Write → IndexedDB "answers" (encrypt, immediate)
     b. Push → IndexedDB "sync_queue" (pending sync)
     c. UI phản hồi ngay (optimistic)
-12. Timer đếm ngược local (interval 1 giây)
-13. Sync Engine (background):
+13. Timer đếm ngược local (interval 1 giây)
+14. Sync Engine (background — LIÊN TỤC khi có mạng):
     a. Check online status (navigator.onLine + heartbeat)
-    b. Online → pop sync_queue → POST /exams/{id}/answers/batch
-    c. Server confirm → remove from sync_queue
-    d. Offline → giữ trong queue, retry khi online
+    b. Online → trigger: debounce 3s sau answer change, hoặc interval 10s
+    c. Pop sync_queue → POST /exams/{id}/sync (batch)
+    d. Server confirm → remove from sync_queue
+    e. Offline → đáp án tích lũy trong queue, flush ngay khi online lại
+    ★ Không phải "xong mới gửi" — sync chạy liên tục khi có mạng ★
+
+Phase 3b: CHECKPOINT tại điểm chạm (next page / next part / next section)
+═══════════════════════════════════════
+15. Thí sinh nhấn Next Page / Next Part:
+    a. Force sync sync_queue ngay (không chờ debounce/interval)
+    b. Server log checkpoint snapshot
+    c. Không block navigation — cho qua ngay, sync chạy background
+16. Thí sinh nhấn Next Section:
+    a. Force sync sync_queue (blocking — chờ confirm)
+    b. Server log checkpoint + trả nội dung section mới
+    c. Client lưu section mới vào IndexedDB → navigate
+    d. Nếu offline → retry, hiện "Đang tải section tiếp theo..."
 
 Phase 4: SUBMIT (online required — with grace period)
 ═══════════════════════════════════════
@@ -307,7 +436,22 @@ Phase 3-4 (Exam + Submit):
 
 ---
 
-## 5. Sync Protocol — Đồng bộ đáp án lên server
+## 6. Sync Protocol — Đồng bộ liên tục
+
+### Mô hình sync đúng
+
+```
+Có mạng:   answer change → queue → debounce 3s → batch sync → server confirm → xóa queue
+                                 hoặc interval 10s ──────────────────────────────────↑
+                                 hoặc checkpoint force sync ────────────────────────↑
+
+Mất mạng:  answer change → queue tích lũy (không mất)
+Có mạng lại: flush toàn bộ queue ngay lập tức
+Nộp bài:   final flush những gì còn sót trong queue
+```
+
+**KHÔNG phải:** "làm xong → nộp → mới gửi đáp án lên server"
+**ĐÚNG là:** sync chạy liên tục background, nộp bài chỉ là final flush
 
 ### Sync Queue Model
 
@@ -413,7 +557,151 @@ navigator.onLine = true (hoặc heartbeat OK)
 
 ---
 
-## 6. Data Model
+## 7. Checkpoint Service — Điểm chạm
+
+### Điểm chạm là gì?
+
+Mỗi khi thí sinh chuyển **next page / next part / next section**, hệ thống thực hiện:
+1. Force sync đáp án pending lên server
+2. Server log checkpoint snapshot (đáp án tại thời điểm đó)
+3. Server trả nội dung tiếp theo (với next section — Partial Reveal)
+
+### Hành vi tại từng loại checkpoint
+
+| Checkpoint | Force sync | Block navigation? | Server action |
+|---|---|---|---|
+| **Next Page** | Có (fire-and-forget) | Không — cho qua ngay | Log checkpoint |
+| **Next Part** | Có (fire-and-forget) | Không — cho qua ngay | Log checkpoint |
+| **Next Section** | Có (blocking) | Có — chờ confirm + tải section mới | Log checkpoint + trả section content |
+
+**Tại sao Next Page / Part không block?**
+```
+Sync queue vẫn chạy background → đáp án không mất
+Block navigation → UX tệ → thí sinh bực bội
+Checkpoint chỉ cần đảm bảo: server có snapshot tại mốc đó, không cần real-time
+```
+
+**Tại sao Next Section block?**
+```
+Cần tải nội dung section mới (Partial Reveal) → bắt buộc online
+Force sync trước khi tải → đảm bảo server có đủ đáp án section vừa xong
+→ Nếu client crash sau đó → server đã có full data của section đã làm
+```
+
+### Flow Next Section chi tiết
+
+```
+Thí sinh nhấn "Next Section":
+  1. Client: force flush sync_queue → POST /exams/{id}/sync
+  2. Server: confirm sync + log checkpoint + trả section_content mới
+  3. Client: lưu section_content mới vào IndexedDB (xóa section cũ)
+  4. Client: navigate sang section mới
+
+Nếu offline khi nhấn Next Section:
+  → Hiện: "Đang đồng bộ và tải section tiếp theo..."
+  → Retry tự động khi có mạng
+  → Pre-fetch đã chạy trước đó (còn 5 phút) → section mới có thể đã sẵn sàng
+```
+
+### Checkpoint API
+
+```
+POST /api/v1/exams/{examId}/checkpoint
+Authorization: Bearer {exam_token}
+
+Request:
+{
+  "session_id": "sess_abc",
+  "checkpoint_type": "next_section",   // next_page | next_part | next_section
+  "from": "section_1",
+  "to": "section_2",
+  "answers": [...],                    // pending answers chưa sync
+  "client_timestamp": 1712400200000
+}
+
+Response:
+{
+  "checkpoint_id": "cp_uuid",
+  "accepted_answers": ["uuid-1", ...],
+  "section_content": { ... },          // chỉ có khi checkpoint_type = next_section
+  "server_timestamp": 1712400200500
+}
+```
+
+---
+
+## 8. Cross-device Sync — Đổi thiết bị giữa chừng
+
+### Bài toán
+
+```
+Thí sinh đang thi trên máy A → máy A hỏng / hết pin giữa chừng
+→ Chuyển sang máy B
+→ Máy B không có IndexedDB của bài thi đang dở
+→ Cần restore state từ server → tiếp tục thi
+```
+
+### Luồng Resume trên thiết bị mới
+
+```
+Máy B:
+  1. Đăng nhập → server verify → phát hiện session đang IN_PROGRESS
+  2. Server trả: "Bạn đang có bài thi dở. Tiếp tục không?"
+  3. Thí sinh xác nhận → GET /exams/{id}/resume
+  4. Server trả:
+     - exam_state: { current_section, current_question, timer_remaining }
+     - latest_answers: đáp án mới nhất của từng câu (từ server DB)
+     - section_content: nội dung section hiện tại (Partial Reveal)
+  5. Client hydrate IndexedDB từ server data
+  6. Re-derive session key từ exam token mới → decrypt/encrypt lại answers
+  7. Resume bài thi từ đúng vị trí
+```
+
+### Sync 2 chiều
+
+| Chiều | Khi nào | Cơ chế |
+|---|---|---|
+| **Local → Server** | Liên tục khi có mạng (debounce 3s + interval 10s + checkpoint) | POST /sync batch |
+| **Server → Local** | Khi mở máy mới / refresh / resume sau crash | GET /resume hydrate IndexedDB |
+
+### Edge case: máy A vẫn còn sync_queue chưa flush
+
+```
+Máy A crash → sync_queue còn 5 entries chưa gửi lên server
+Máy B resume → server chỉ có answers đã sync trước đó
+
+Giải pháp:
+  → Server dùng latest checkpoint snapshot làm baseline
+  → 5 entries chưa sync = mất (chấp nhận được — window nhỏ)
+  → Nếu muốn zero loss: máy A cần flush trước khi crash (không đảm bảo được)
+  → Checkpoint tại next page/part giúp giảm window mất data xuống tối thiểu
+```
+
+### Resume API
+
+```
+GET /api/v1/exams/{examId}/resume
+Authorization: Bearer {exam_token}
+
+Response:
+{
+  "session_id": "sess_abc",
+  "status": "IN_PROGRESS",
+  "current_section": 2,
+  "current_question": 15,
+  "timer_remaining_ms": 2145000,
+  "latest_answers": [
+    { "question_id": "reading_q1", "answer": "B", "sequence": 12 },
+    ...
+  ],
+  "section_content": { ... },
+  "last_checkpoint": { "type": "next_part", "at": "2026-04-11T09:30:00Z" }
+}
+```
+
+---
+
+## 9. Data Model
 
 ### Server-side
 
@@ -466,6 +754,19 @@ CREATE TABLE sync_logs (
     client_timer_remaining_ms BIGINT,
     ip              INET,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Checkpoint log: snapshot tại mỗi điểm chạm
+CREATE TABLE exam_checkpoints (
+    id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    session_id       UUID NOT NULL REFERENCES exam_sessions(id),
+    checkpoint_type  TEXT NOT NULL,     -- next_page | next_part | next_section
+    from_ref         TEXT NOT NULL,     -- page/part/section vừa rời
+    to_ref           TEXT NOT NULL,     -- page/part/section sắp vào
+    answers_count    INT NOT NULL,      -- số answers đã sync tại thời điểm này
+    answers_snapshot JSONB,             -- snapshot đáp án tại mốc (latest per question)
+    client_timestamp TIMESTAMPTZ NOT NULL,
+    server_timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 ```
 
@@ -523,7 +824,7 @@ const DB_VERSION = 1;
 
 ---
 
-## 7. Interview Quick Reference
+## 10. Interview Quick Reference
 
 ### Elevator Pitch (30 giây)
 
@@ -544,3 +845,19 @@ const DB_VERSION = 1;
 ### "Offline khi nộp bài thì sao?"
 
 > "Lưu submit intent vào IndexedDB. Hiện thông báo 'đang chờ kết nối'. Auto-submit khi online. Grace period 5 phút sau deadline — server chấp nhận nộp muộn trong window này. Quá grace period → server dùng answers đã sync trước đó để chấm."
+
+### "Sync hoạt động thế nào — có phải xong mới gửi không?"
+
+> "Không. Sync chạy liên tục khi có mạng: debounce 3s sau answer change, hoặc interval 10s. Mất mạng → queue tích lũy, flush ngay khi online lại. Nộp bài chỉ là final flush những gì còn sót. Ngoài ra có checkpoint force sync tại next page/part/section."
+
+### "Checkpoint service là gì?"
+
+> "Tại mỗi điểm chạm next page/part/section, client force sync toàn bộ pending answers. Next page/part: non-blocking, cho qua ngay. Next section: blocking vì cần tải nội dung section mới (Partial Reveal). Server log checkpoint snapshot — đảm bảo có đủ data dù client crash sau đó."
+
+### "Thí sinh đổi thiết bị giữa chừng thì sao?"
+
+> "GET /exams/{id}/resume — server trả exam_state + latest_answers + section_content hiện tại. Client hydrate IndexedDB từ data này, re-derive session key, resume đúng vị trí. Answers chưa flush trước khi crash có thể mất (window nhỏ), checkpoint tại next page/part giúp minimize mất mát."
+
+### "Tại sao không tải toàn bộ đề từ đầu?"
+
+> "Bảo mật đề thi: nếu tải toàn bộ, thí sinh ca sáng có thể chia sẻ đề cho ca chiều qua IndexedDB. Partial Reveal: chỉ tải section đang thi, pre-fetch section sau khi còn 5 phút. Trade-off: cần online tại mốc chuyển section — acceptable vì không cần online liên tục."
